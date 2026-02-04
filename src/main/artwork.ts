@@ -62,9 +62,9 @@ export async function fetchArtworkSet(
       const ext = path.extname(new URL(asset.url).pathname) || ".png";
       const target = path.join(gridPath, `${asset.file}${ext}`);
       try {
-        await downloadToFile(asset.url, target);
+        const written = await downloadToFile(asset.url, target);
         result.downloaded++;
-        result.files[asset.key] = target;
+        result.files[asset.key] = written;
         log("info", "Artwork downloaded", { gameName, type: asset.type, target });
       } catch (error) {
         log("warn", "Artwork download failed", { gameName, type: asset.type, error: String(error) });
@@ -125,7 +125,7 @@ async function fetchFirstUrl(apiKey: string, url: string): Promise<string | null
   return (png ?? jpg ?? body.data[0]).url;
 }
 
-async function downloadToFile(url: string, target: string): Promise<void> {
+async function downloadToFile(url: string, target: string): Promise<string> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`download failed (${res.status})`);
   const buffer = Buffer.from(await res.arrayBuffer());
@@ -134,12 +134,14 @@ async function downloadToFile(url: string, target: string): Promise<void> {
     const pngTarget = target.replace(/\.[^.]+$/, ".png");
     const converted = await sharp(buffer).png().toBuffer();
     fs.writeFileSync(pngTarget, converted);
-    return;
+    return pngTarget;
   }
   fs.writeFileSync(target, buffer);
+  return target;
 }
 
 const ART_EXTS = [".png", ".jpg", ".jpeg"];
+const WEBP_EXT = ".webp";
 
 function getMissingArtwork(
   gridPath: string,
@@ -157,9 +159,25 @@ function getMissingArtwork(
   if (hasAnyFile(gridPath, `${appId}_hero`)) required.delete("hero");
   if (hasAnyFile(gridPath, `${appId}_logo`)) required.delete("logo");
   if (hasAnyFile(gridPath, `${appId}_icon`)) required.delete("icon");
+  cleanupWebp(gridPath, `${appId}_p`);
+  cleanupWebp(gridPath, `${appId}`);
+  cleanupWebp(gridPath, `${appId}_hero`);
+  cleanupWebp(gridPath, `${appId}_logo`);
+  cleanupWebp(gridPath, `${appId}_icon`);
   return required;
 }
 
 function hasAnyFile(dir: string, base: string): boolean {
   return ART_EXTS.some((ext) => fs.existsSync(path.join(dir, `${base}${ext}`)));
+}
+
+function cleanupWebp(dir: string, base: string): void {
+  const webp = path.join(dir, `${base}${WEBP_EXT}`);
+  if (fs.existsSync(webp) && !hasAnyFile(dir, base)) {
+    try {
+      fs.unlinkSync(webp);
+    } catch {
+      // ignore cleanup errors
+    }
+  }
 }
