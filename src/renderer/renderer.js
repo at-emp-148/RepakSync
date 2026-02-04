@@ -17,6 +17,8 @@ function requireSettings(actionLabel) {
 }
 
 function setIndicator(state) {
+  const statusIndicator = document.getElementById("statusIndicator");
+  if (!statusIndicator) return;
   const colors = {
     idle: "#4de0c6",
     scanning: "#ffb347",
@@ -253,6 +255,8 @@ async function init() {
   try {
     settings = await window.steamSyncer.getSettings();
     renderSettings();
+    detectedGames = await window.steamSyncer.getDetectedGames();
+    renderOverrides();
   } catch (error) {
     initError = error;
     console.error("Init failed", error);
