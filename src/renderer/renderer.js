@@ -55,7 +55,7 @@ function renderSettings() {
 }
 
 function buildKey(name, exePath) {
-  return `${name.trim().toLowerCase()}::${exePath.replace(/^\"|\"$/g, \"\").trim().toLowerCase()}`;
+  return `${name.trim().toLowerCase()}::${exePath.replace(/^\"|\"$/g, "").trim().toLowerCase()}`;
 }
 
 function renderOverrides() {
