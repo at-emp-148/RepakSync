@@ -100,7 +100,7 @@ export async function runSync(
       const key = buildShortcutKey(game.name, game.exePath);
       const entry = shortcutIndex.get(key);
       const appId = entry
-        ? getShortcutAppId(entry) ?? computeAppId(game.name, game.exePath)
+        ? getShortcutAppId(entry) ?? computeAppId(String(entry.appname ?? game.name), String(entry.exe ?? game.exePath))
         : computeAppId(game.name, game.exePath);
       if (entry && entry.appid == null) entry.appid = appId;
       return { game, entry, appId };
@@ -116,7 +116,7 @@ export async function runSync(
       status.pendingArtwork = remaining;
       status.message = `Artwork remaining: ${remaining}`;
       onStatus?.(status);
-      log("info", "Artwork fetch", { game: target.game.name, ...art });
+      log("info", "Artwork fetch", { game: target.game.name, appId: target.appId, ...art });
     }
   }
 

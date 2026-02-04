@@ -206,6 +206,7 @@ export function addGamesToShortcuts(
     if (existing.has(key)) continue;
     const appid = computeAppId(game.name, game.exePath);
     root.shortcuts[String(nextIndex)] = {
+      appid,
       appname: game.name,
       exe: `\"${game.exePath}\"`,
       StartDir: `\"${game.startDir}\"`,

@@ -42,7 +42,7 @@ export async function fetchArtworkSet(
         ? { key: "grid", type: "grid-portrait", url: await fetchGrid(apiKey, gameId, "600x900"), file: `${appId}_p` }
         : null,
       missing.has("gridWide")
-        ? { key: "gridWide", type: "grid-wide", url: await fetchGrid(apiKey, gameId, "920x430,460x215"), file: `${appId}` }
+        ? { key: "gridWide", type: "grid-wide", url: await fetchGrid(apiKey, gameId, "460x215,920x430"), file: `${appId}` }
         : null,
       missing.has("hero")
         ? { key: "hero", type: "hero", url: await fetchHero(apiKey, gameId), file: `${appId}_hero` }
