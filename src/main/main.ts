@@ -117,7 +117,7 @@ function startSteamWatch(): void {
   }, 15000);
 }
 
-app.on("window-all-closed", (e) => {
+app.on("window-all-closed", (e: Electron.Event) => {
   e.preventDefault();
 });
 

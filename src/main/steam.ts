@@ -3,7 +3,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import psList from "ps-list";
-import { readVdf, writeVdf } from "steam-binary-vdf";
+import { readVdf, writeVdf, VdfMap } from "steam-binary-vdf";
 import { GameCandidate } from "../shared/types.js";
 
 const execFileAsync = promisify(execFile);
@@ -64,7 +64,7 @@ export function findPrimarySteamUserId(userdataPath: string): string | null {
   return best?.id ?? (userDirs[0] ?? null);
 }
 
-export type ShortcutsRoot = {
+export type ShortcutsRoot = VdfMap & {
   shortcuts: Record<string, Record<string, unknown>>;
 };
 
@@ -77,7 +77,7 @@ export function readShortcuts(filePath: string): ShortcutsRoot {
 }
 
 export function writeShortcuts(filePath: string, root: ShortcutsRoot): void {
-  const bin = writeVdf(root);
+  const bin = writeVdf(root as VdfMap);
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, bin);
 }
