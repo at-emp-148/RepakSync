@@ -234,3 +234,29 @@ export function addGamesToShortcuts(
 function normalizeExe(exe: string): string {
   return exe.replace(/^\"|\"$/g, "").trim().toLowerCase();
 }
+
+export function dedupeShortcuts(root: ShortcutsRoot): { removed: number } {
+  if (!root.shortcuts) return { removed: 0 };
+  const seen = new Set<string>();
+  const keys = Object.keys(root.shortcuts).sort((a, b) => Number(a) - Number(b));
+  const newShortcuts: Record<string, Record<string, unknown>> = {};
+  let nextIndex = 0;
+  let removed = 0;
+
+  for (const key of keys) {
+    const entry = root.shortcuts[key];
+    const appname = String(entry.appname ?? "").trim().toLowerCase();
+    const exe = normalizeExe(String(entry.exe ?? ""));
+    const dedupeKey = `${appname}::${exe}`;
+    if (seen.has(dedupeKey)) {
+      removed++;
+      continue;
+    }
+    seen.add(dedupeKey);
+    newShortcuts[String(nextIndex)] = entry as Record<string, unknown>;
+    nextIndex++;
+  }
+
+  root.shortcuts = newShortcuts;
+  return { removed };
+}

@@ -71,6 +71,11 @@ export async function runSync(
 
   const shortcutsPath = path.join(userdataPath, userId, "config", "shortcuts.vdf");
   const root = readShortcuts(shortcutsPath);
+  const { dedupeShortcuts } = await import("./steam.js");
+  const dedupeResult = dedupeShortcuts(root);
+  if (dedupeResult.removed > 0) {
+    log("info", "Removed duplicate shortcuts", { removed: dedupeResult.removed });
+  }
   const { added, addedIds, addedGames } = addGamesToShortcuts(root, games);
   writeShortcuts(shortcutsPath, root);
   log("info", "Shortcuts updated", { added });
