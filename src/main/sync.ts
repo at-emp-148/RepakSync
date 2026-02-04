@@ -53,7 +53,7 @@ export async function runSync(
   onStatus?.(status);
 
   const userdataPath = getUserdataPath(steamPath);
-  const userId = findPrimarySteamUserId(userdataPath);
+  const userId = findPrimarySteamUserId(steamPath, userdataPath);
   if (!userId) {
     return {
       status: { state: "error", message: "Steam user not found." },

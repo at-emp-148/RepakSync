@@ -50,8 +50,15 @@ export function getUserdataPath(steamPath: string): string {
   return path.join(steamPath, "userdata");
 }
 
-export function findPrimarySteamUserId(userdataPath: string): string | null {
+export function findPrimarySteamUserId(steamPath: string, userdataPath: string): string | null {
   if (!fs.existsSync(userdataPath)) return null;
+
+  const loginUsersPath = path.join(steamPath, "config", "loginusers.vdf");
+  const mostRecent = readMostRecentUserId(loginUsersPath);
+  if (mostRecent && fs.existsSync(path.join(userdataPath, mostRecent))) {
+    return mostRecent;
+  }
+
   const entries = fs.readdirSync(userdataPath, { withFileTypes: true });
   const userDirs = entries.filter((e) => e.isDirectory()).map((e) => e.name);
   let best: { id: string; mtime: number } | null = null;
@@ -62,6 +69,24 @@ export function findPrimarySteamUserId(userdataPath: string): string | null {
     if (!best || stat.mtimeMs > best.mtime) best = { id, mtime: stat.mtimeMs };
   }
   return best?.id ?? (userDirs[0] ?? null);
+}
+
+function readMostRecentUserId(loginUsersPath: string): string | null {
+  if (!fs.existsSync(loginUsersPath)) return null;
+  const raw = fs.readFileSync(loginUsersPath, "utf-8");
+  const lines = raw.split(/\r?\n/);
+  let currentId: string | null = null;
+  for (const line of lines) {
+    const idMatch = line.match(/^\s*\"(\\d{5,})\"\s*$/);
+    if (idMatch) {
+      currentId = idMatch[1];
+      continue;
+    }
+    if (currentId && line.includes("\"MostRecent\"") && line.includes("\"1\"")) {
+      return currentId;
+    }
+  }
+  return null;
 }
 
 export type ShortcutsRoot = VdfMap & {
