@@ -4,6 +4,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import psList from "ps-list";
 import { readVdf, writeVdf, VdfMap } from "steam-binary-vdf";
+import { log } from "./logger.js";
 import { GameCandidate } from "../shared/types.js";
 
 const execFileAsync = promisify(execFile);
@@ -25,8 +26,33 @@ export async function getSteamPath(): Promise<string | null> {
     const value = parts[parts.length - 1];
     return value.replace(/\//g, "\\");
   } catch {
-    return null;
+    // fall through
   }
+  try {
+    const { stdout } = await execFileAsync("reg", [
+      "query",
+      "HKLM\\Software\\Valve\\Steam",
+      "/v",
+      "InstallPath"
+    ]);
+    const line = stdout
+      .split("\n")
+      .find((l) => l.toLowerCase().includes("installpath"));
+    if (!line) return null;
+    const parts = line.trim().split(/\s+/);
+    const value = parts[parts.length - 1];
+    return value.replace(/\//g, "\\");
+  } catch {
+    // fall through
+  }
+  const defaults = [
+    "C:\\Program Files (x86)\\Steam",
+    "C:\\Program Files\\Steam"
+  ];
+  for (const candidate of defaults) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
 }
 
 export async function isSteamRunning(): Promise<boolean> {
@@ -54,8 +80,10 @@ export function findPrimarySteamUserId(steamPath: string, userdataPath: string):
   if (!fs.existsSync(userdataPath)) return null;
 
   const loginUsersPath = path.join(steamPath, "config", "loginusers.vdf");
+  log("info", "Resolving Steam user", { userdataPath, loginUsersPath });
   const mostRecent = readMostRecentUserId(loginUsersPath);
   if (mostRecent && fs.existsSync(path.join(userdataPath, mostRecent))) {
+    log("info", "Using MostRecent Steam user", { userId: mostRecent });
     return mostRecent;
   }
 
@@ -68,12 +96,13 @@ export function findPrimarySteamUserId(steamPath: string, userdataPath: string):
     const stat = fs.statSync(shortcuts);
     if (!best || stat.mtimeMs > best.mtime) best = { id, mtime: stat.mtimeMs };
   }
+  if (!best && userDirs.length > 0) {
+    log("warn", "Falling back to first Steam user directory", { userId: userDirs[0] });
+  }
   return best?.id ?? (userDirs[0] ?? null);
 }
 
-function readMostRecentUserId(loginUsersPath: string): string | null {
-  if (!fs.existsSync(loginUsersPath)) return null;
-  const raw = fs.readFileSync(loginUsersPath, "utf-8");
+export function parseMostRecentUserId(raw: string): string | null {
   const lines = raw.split(/\r?\n/);
   let currentId: string | null = null;
   for (const line of lines) {
@@ -87,6 +116,16 @@ function readMostRecentUserId(loginUsersPath: string): string | null {
     }
   }
   return null;
+}
+
+function readMostRecentUserId(loginUsersPath: string): string | null {
+  if (!fs.existsSync(loginUsersPath)) return null;
+  const raw = fs.readFileSync(loginUsersPath, "utf-8");
+  const id = parseMostRecentUserId(raw);
+  if (!id) {
+    log("warn", "No MostRecent user found in loginusers.vdf", { loginUsersPath });
+  }
+  return id;
 }
 
 export type ShortcutsRoot = VdfMap & {

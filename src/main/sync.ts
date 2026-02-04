@@ -12,6 +12,7 @@ import {
   readShortcuts,
   writeShortcuts
 } from "./steam.js";
+import { log } from "./logger.js";
 
 export type SyncResult = {
   status: SyncStatus;
@@ -26,19 +27,23 @@ export async function runSync(
 ): Promise<SyncResult> {
   const status: SyncStatus = { state: "scanning", message: "Scanning folders..." };
   onStatus?.(status);
+  log("info", "Sync started", { scanFolders, includeKnownStores });
 
   const steamPath = await getSteamPath();
   if (!steamPath) {
+    log("error", "Steam path not found");
     return {
       status: { state: "error", message: "Steam not found." },
       addedAppIds: []
     };
   }
+  log("info", "Steam path resolved", { steamPath });
 
   const running = await isSteamRunning();
   if (running) {
     status.message = "Closing Steam for sync...";
     onStatus?.(status);
+    log("info", "Closing Steam for sync");
     await closeSteam();
   }
 
@@ -51,20 +56,24 @@ export async function runSync(
   status.message = `Syncing ${games.length} detected games...`;
   status.found = games.length;
   onStatus?.(status);
+  log("info", "Scan complete", { found: games.length });
 
   const userdataPath = getUserdataPath(steamPath);
   const userId = findPrimarySteamUserId(steamPath, userdataPath);
   if (!userId) {
+    log("error", "Steam user not found", { userdataPath });
     return {
       status: { state: "error", message: "Steam user not found." },
       addedAppIds: []
     };
   }
+  log("info", "Steam user resolved", { userId });
 
   const shortcutsPath = path.join(userdataPath, userId, "config", "shortcuts.vdf");
   const root = readShortcuts(shortcutsPath);
   const { added, addedIds, addedGames } = addGamesToShortcuts(root, games);
   writeShortcuts(shortcutsPath, root);
+  log("info", "Shortcuts updated", { added });
 
   status.message = `Added ${added} new games. Fetching artwork...`;
   status.added = added;
@@ -83,6 +92,7 @@ export async function runSync(
       status.pendingArtwork = remaining;
       status.message = `Artwork remaining: ${remaining}`;
       onStatus?.(status);
+      log("info", "Artwork fetch", { game: game.name, ok });
     }
   }
 
@@ -98,6 +108,7 @@ export async function runSync(
   if (running) {
     const { launchSteam } = await import("./steam.js");
     await launchSteam(steamPath);
+    log("info", "Steam relaunched");
   }
 
   return { status: doneStatus, addedAppIds: addedIds };

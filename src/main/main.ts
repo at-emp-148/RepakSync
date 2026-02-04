@@ -1,10 +1,11 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Tray } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, shell, Tray } from "electron";
 import path from "node:path";
 import fs from "node:fs";
 import { loadSettings, saveSettings } from "./settings.js";
 import { runSync } from "./sync.js";
 import { getSteamPath, isSteamRunning, launchSteam } from "./steam.js";
 import { Settings, SyncStatus } from "../shared/types.js";
+import { getLogPath, log } from "./logger.js";
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -60,6 +61,7 @@ function updateStatus(status: SyncStatus): void {
 async function triggerSync(): Promise<void> {
   if (syncing) return;
   syncing = true;
+  log("info", "Triggering sync");
   const settings = loadSettings();
   const result = await runSync(
     settings.scanFolders,
@@ -86,8 +88,14 @@ function setupIpc(): void {
     await triggerSync();
     return lastStatus;
   });
+  ipcMain.handle("open-logs", async () => {
+    const logPath = getLogPath();
+    await shell.openPath(path.dirname(logPath));
+    return logPath;
+  });
   ipcMain.handle("launch-steam", async () => {
     if (syncing) return { ok: false, message: "Sync in progress" };
+    log("info", "Launch Steam requested");
     const settings = loadSettings();
     await runSync(
       settings.scanFolders,
@@ -105,6 +113,7 @@ app.on("ready", () => {
   if (process.platform === "win32") {
     app.setLoginItemSettings({ openAtLogin: true });
   }
+  log("info", "App ready", { logPath: getLogPath() });
   mainWindow = createWindow();
   createTray();
   setupIpc();

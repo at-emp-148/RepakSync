@@ -10,6 +10,7 @@ const addFolder = document.getElementById("addFolder");
 const knownStores = document.getElementById("knownStores");
 const apiKey = document.getElementById("apiKey");
 const saveSettings = document.getElementById("saveSettings");
+const openLogs = document.getElementById("openLogs");
 
 let settings = null;
 
@@ -73,6 +74,9 @@ knownStores.addEventListener("change", async () => {
 saveSettings.addEventListener("click", async () => {
   settings.steamGridDbApiKey = apiKey.value.trim();
   settings = await window.steamSyncer.saveSettings(settings);
+});
+openLogs.addEventListener("click", async () => {
+  await window.steamSyncer.openLogs();
 });
 
 window.steamSyncer.onStatus(applyStatus);

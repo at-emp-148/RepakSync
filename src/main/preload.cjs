@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld("steamSyncer", {
   chooseFolder: () => ipcRenderer.invoke("choose-folder"),
   sync: () => ipcRenderer.invoke("sync"),
   launchSteam: () => ipcRenderer.invoke("launch-steam"),
+  openLogs: () => ipcRenderer.invoke("open-logs"),
   onStatus: (handler) => {
     ipcRenderer.on("status", (_, status) => handler(status));
   }
