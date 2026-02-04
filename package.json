@@ -1,0 +1,21 @@
+{
+  "name": "steam-syncer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Auto-detect local games and add them to Steam with artwork.",
+  "main": "dist/main/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc -w --preserveWatchOutput",
+    "start": "electron .",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "electron": "^29.1.0",
+    "ps-list": "^8.1.1",
+    "steam-binary-vdf": "^1.1.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

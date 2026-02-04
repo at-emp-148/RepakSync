@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Steam Syncer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+
+    <main class="shell">
+      <header class="header">
+        <div>
+          <p class="eyebrow">Steam Syncer</p>
+          <h1>Keep your library unified.</h1>
+          <p class="sub">Detect games across stores, sync them to Steam, and grab artwork automatically.</p>
+        </div>
+        <div class="actions">
+          <button id="syncBtn" class="btn primary">Run Sync</button>
+          <button id="launchBtn" class="btn ghost">Launch Steam</button>
+        </div>
+      </header>
+
+      <section class="status">
+        <div class="status-card">
+          <div class="status-indicator" id="statusIndicator"></div>
+          <div>
+            <p class="label">Status</p>
+            <p class="value" id="statusText">Ready.</p>
+          </div>
+        </div>
+        <div class="status-card">
+          <p class="label">Last Sync</p>
+          <p class="value" id="lastSync">Never</p>
+        </div>
+        <div class="status-card">
+          <p class="label">Found</p>
+          <p class="value" id="found">0</p>
+        </div>
+        <div class="status-card">
+          <p class="label">Added</p>
+          <p class="value" id="added">0</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Scan Folders</h2>
+          <div class="panel-actions">
+            <button id="addFolder" class="btn small">Add Folder</button>
+          </div>
+        </div>
+        <div class="folder-list" id="folderList"></div>
+        <label class="toggle">
+          <input id="knownStores" type="checkbox" />
+          <span>Include known store folders (Epic, GOG)</span>
+        </label>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Artwork</h2>
+        </div>
+        <div class="artwork">
+          <label class="field">
+            <span>SteamGridDB API Key</span>
+            <input id="apiKey" type="password" placeholder="Paste API key" />
+          </label>
+          <button id="saveSettings" class="btn small">Save Settings</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,263 @@
+@font-face {
+  font-family: "SpaceGrotesk";
+  src: local("Space Grotesk"), local("SpaceGrotesk");
+  font-display: swap;
+}
+
+:root {
+  --bg: #0b0d12;
+  --bg-2: #121725;
+  --card: rgba(20, 25, 38, 0.75);
+  --text: #f0f3ff;
+  --muted: #9ca6c4;
+  --accent: #4de0c6;
+  --accent-2: #4d7cff;
+  --danger: #ff6b6b;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "SpaceGrotesk", "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(circle at top left, #19203a 0%, #0b0d12 45%),
+    radial-gradient(circle at 80% 10%, #1f2b4a 0%, #0b0d12 55%);
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.5;
+}
+
+.orb-1 {
+  width: 240px;
+  height: 240px;
+  background: #4de0c6;
+  top: 10%;
+  left: 5%;
+}
+
+.orb-2 {
+  width: 320px;
+  height: 320px;
+  background: #4d7cff;
+  top: 20%;
+  right: 10%;
+}
+
+.orb-3 {
+  width: 280px;
+  height: 280px;
+  background: #ffb347;
+  bottom: 10%;
+  left: 35%;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  padding: 40px 56px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.sub {
+  color: var(--muted);
+  max-width: 520px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn.primary {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  color: #0b0d12;
+  box-shadow: 0 10px 30px rgba(77, 124, 255, 0.35);
+}
+
+.btn.ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn.small {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.status {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.status-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(77, 224, 198, 0.6);
+}
+
+.status-card .label {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.status-card .value {
+  font-size: 18px;
+}
+
+.panel {
+  background: rgba(15, 20, 32, 0.85);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.folder-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.folder-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.folder-item span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.field input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.artwork {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+@media (max-width: 980px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .status {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .artwork {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 640px) {
+  .shell {
+    padding: 28px;
+  }
+  .status {
+    grid-template-columns: 1fr;
+  }
+}
