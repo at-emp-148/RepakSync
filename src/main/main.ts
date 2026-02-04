@@ -15,6 +15,7 @@ let steamLaunchHandledAt: number | null = null;
 const ICON_PATH = path.join(app.getAppPath(), "assets", "tray.png");
 
 function createWindow(): BrowserWindow {
+  const preloadPath = resolvePreloadPath();
   const win = new BrowserWindow({
     width: 1040,
     height: 680,
@@ -22,13 +23,19 @@ function createWindow(): BrowserWindow {
     minHeight: 600,
     backgroundColor: "#0e1016",
     webPreferences: {
-      preload: path.join(app.getAppPath(), "dist", "main", "preload.js"),
+      preload: preloadPath,
       contextIsolation: true
     }
   });
 
   win.loadFile(path.join(app.getAppPath(), "src", "renderer", "index.html"));
   return win;
+}
+
+function resolvePreloadPath(): string {
+  const candidateCjs = path.join(app.getAppPath(), "src", "main", "preload.cjs");
+  if (fs.existsSync(candidateCjs)) return candidateCjs;
+  return path.join(app.getAppPath(), "dist", "main", "preload.js");
 }
 
 function createTray(): void {
