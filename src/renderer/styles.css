@@ -85,6 +85,12 @@ body {
   opacity: 0.8;
 }
 
+.nav-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
 .nav-item:hover {
   background: #1b2330;
   color: var(--text);
@@ -244,45 +250,139 @@ body {
 
 .library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.library-header h2 {
+  font-size: 20px;
+}
+
+.library-header p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.library-tools {
+  display: flex;
   gap: 12px;
+  align-items: center;
+}
+
+.search {
+  background: #111821;
+  border: 1px solid #263549;
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 220px;
+}
+
+.search input {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  font-size: 12px;
+}
+
+.pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(102, 192, 244, 0.15);
+  border: 1px solid rgba(102, 192, 244, 0.4);
+  color: var(--accent);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.library-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
 }
 
 .game-card {
   background: linear-gradient(180deg, rgba(32, 44, 60, 0.9), rgba(20, 26, 34, 0.9));
-  border-left: 2px solid var(--accent);
-  border-radius: 3px;
+  border: 1px solid #1c2f43;
+  border-radius: 8px;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .game-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(102, 192, 244, 0.6);
 }
 
-.game-card img {
-  width: 36px;
-  height: 36px;
+.game-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 6px 20px rgba(26, 159, 255, 0.2);
+}
+
+.game-cover {
+  position: relative;
+  height: 120px;
+  border-radius: 8px;
+  background: #131b25;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.game-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+.game-cover__icon {
+  position: relative;
+  z-index: 1;
+  margin: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   object-fit: cover;
-  border-radius: 2px;
 }
 
-.game-icon-placeholder {
-  width: 36px;
-  height: 36px;
-  border-radius: 2px;
-  background: #1a2634;
-  border: 1px solid #223246;
+.game-cover__placeholder {
+  position: relative;
+  z-index: 1;
+  margin: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: grid;
   place-items: center;
   font-size: 14px;
   color: var(--muted);
+}
+
+.game-info {
+  display: grid;
+  gap: 4px;
 }
 
 .game-title {
@@ -298,12 +398,37 @@ body {
 .detail-panel {
   background: linear-gradient(180deg, rgba(34, 48, 66, 0.9), rgba(20, 28, 40, 0.9));
   border: 1px solid #1c2f43;
-  border-radius: 3px;
+  border-radius: 8px;
   padding: 16px;
   display: grid;
   gap: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 12px 40px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
+  position: sticky;
+  top: 24px;
+}
+
+.detail-hero {
+  height: 140px;
+  border-radius: 8px;
+  background: #121a24;
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.7) 100%);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.detail-meta {
+  display: grid;
+  gap: 12px;
 }
 
 .detail-panel.hidden {
@@ -456,6 +581,9 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .split {
+    grid-template-columns: 1fr;
+  }
+  .library-layout {
     grid-template-columns: 1fr;
   }
 }

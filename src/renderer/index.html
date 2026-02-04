@@ -125,38 +125,58 @@
         </section>
 
         <section class="view" data-view="library">
-          <div class="library-grid" id="libraryGrid"></div>
-          <aside class="detail-panel hidden" id="detailPanel">
-            <div class="detail-header">
-              <div class="detail-title" id="detailName">Game</div>
-              <div class="detail-sub" id="detailSource">Source</div>
+          <div class="library-header">
+            <div>
+              <h2>Library</h2>
+              <p>Browse detected games and metadata.</p>
             </div>
-            <div class="detail-section">
-              <div class="detail-label">AppID</div>
-              <div class="detail-value" id="detailAppId">-</div>
+            <div class="library-tools">
+              <div class="search">
+                <input id="librarySearch" type="text" placeholder="Search local library..." />
+              </div>
+              <div class="pill">Local</div>
             </div>
-            <div class="detail-section">
-              <div class="detail-label">Executable</div>
-              <div class="detail-value" id="detailExe">-</div>
+          </div>
+
+          <div class="library-layout">
+            <div class="library-grid" id="libraryGrid"></div>
+
+            <aside class="detail-panel hidden" id="detailPanel">
+            <div class="detail-hero" id="detailHero">
+              <div class="detail-hero__overlay">
+                <div class="detail-title" id="detailName">Game</div>
+                <div class="detail-sub" id="detailSource">Source</div>
+              </div>
             </div>
-            <div class="detail-section">
-              <div class="detail-label">Start Dir</div>
-              <div class="detail-value" id="detailStartDir">-</div>
-            </div>
-            <div class="detail-section">
-              <div class="detail-label">Launch Options</div>
-              <div class="detail-value" id="detailArgs">-</div>
-            </div>
-            <div class="detail-section">
-              <div class="detail-label">Last Played</div>
-              <div class="detail-value" id="detailLastPlayed">-</div>
-            </div>
-            <div class="detail-section">
-              <div class="detail-label">Artwork</div>
-              <div class="detail-value" id="detailArtwork">-</div>
+            <div class="detail-meta">
+              <div class="detail-section">
+                <div class="detail-label">AppID</div>
+                <div class="detail-value" id="detailAppId">-</div>
+              </div>
+              <div class="detail-section">
+                <div class="detail-label">Executable</div>
+                <div class="detail-value" id="detailExe">-</div>
+              </div>
+              <div class="detail-section">
+                <div class="detail-label">Start Dir</div>
+                <div class="detail-value" id="detailStartDir">-</div>
+              </div>
+              <div class="detail-section">
+                <div class="detail-label">Launch Options</div>
+                <div class="detail-value" id="detailArgs">-</div>
+              </div>
+              <div class="detail-section">
+                <div class="detail-label">Last Played</div>
+                <div class="detail-value" id="detailLastPlayed">-</div>
+              </div>
+              <div class="detail-section">
+                <div class="detail-label">Artwork</div>
+                <div class="detail-value" id="detailArtwork">-</div>
+              </div>
             </div>
             <button id="editOverrideFromDetail" class="btn small">Edit Launch Override</button>
-          </aside>
+            </aside>
+          </div>
         </section>
 
         <section class="view" data-view="overrides">

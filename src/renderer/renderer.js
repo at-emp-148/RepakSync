@@ -3,6 +3,8 @@ let detectedGames = [];
 let libraryGames = [];
 let selectedKey = null;
 let activity = [];
+let libraryFilter = "";
+let selectedAppId = null;
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -206,27 +208,42 @@ function renderLibrary() {
   libraryGrid.innerHTML = "";
   const totalDetected = document.getElementById("totalDetected");
   if (totalDetected) totalDetected.textContent = libraryGames.length;
-  libraryGames.forEach((game) => {
+  const filtered = libraryGames.filter((game) =>
+    game.name.toLowerCase().includes(libraryFilter) ||
+    game.source.toLowerCase().includes(libraryFilter)
+  );
+  filtered.forEach((game) => {
     const card = document.createElement("div");
     card.className = "game-card";
-    const iconFile = game.iconPath || game.gridPath;
-    if (iconFile) {
+    if (selectedAppId === game.appId) card.classList.add("active");
+    const cover = document.createElement("div");
+    cover.className = "game-cover";
+    const coverFile = game.gridPath || game.heroPath;
+    if (coverFile) cover.style.backgroundImage = `url(${fileUrl(coverFile)})`;
+    cover.style.backgroundSize = "cover";
+    cover.style.backgroundPosition = "center";
+
+    if (game.iconPath) {
       const icon = document.createElement("img");
-      icon.src = fileUrl(iconFile);
-      card.appendChild(icon);
+      icon.className = "game-cover__icon";
+      icon.src = fileUrl(game.iconPath);
+      cover.appendChild(icon);
     } else {
       const placeholder = document.createElement("div");
-      placeholder.className = "game-icon-placeholder";
+      placeholder.className = "game-cover__placeholder";
       placeholder.textContent = game.name.slice(0, 1).toUpperCase();
-      card.appendChild(placeholder);
+      cover.appendChild(placeholder);
     }
+    const info = document.createElement("div");
+    info.className = "game-info";
     const title = document.createElement("div");
     title.className = "game-title";
     title.textContent = game.name;
     const sub = document.createElement("div");
     sub.className = "game-sub";
     sub.textContent = game.source.toUpperCase();
-    card.append(title, sub);
+    info.append(title, sub);
+    card.append(cover, info);
     card.addEventListener("click", () => showDetails(game));
     libraryGrid.appendChild(card);
   });
@@ -234,6 +251,7 @@ function renderLibrary() {
 
 function showDetails(game) {
   const detailPanel = document.getElementById("detailPanel");
+  const detailHero = document.getElementById("detailHero");
   const detailName = document.getElementById("detailName");
   const detailSource = document.getElementById("detailSource");
   const detailAppId = document.getElementById("detailAppId");
@@ -245,6 +263,14 @@ function showDetails(game) {
   if (!detailPanel) return;
   detailPanel.classList.remove("hidden");
   selectedKey = buildKey(game.name, game.exePath);
+  selectedAppId = game.appId;
+  renderLibrary();
+  if (detailHero) {
+    const hero = game.heroPath || game.gridPath;
+    detailHero.style.backgroundImage = hero ? `url(${fileUrl(hero)})` : "none";
+    detailHero.style.backgroundSize = "cover";
+    detailHero.style.backgroundPosition = "center";
+  }
   if (detailName) detailName.textContent = game.name;
   if (detailSource) detailSource.textContent = game.source.toUpperCase();
   if (detailAppId) detailAppId.textContent = String(game.appId);
@@ -286,6 +312,7 @@ function bindEvents() {
   const saveOverride = document.getElementById("saveOverride");
   const clearOverride = document.getElementById("clearOverride");
   const editOverrideFromDetail = document.getElementById("editOverrideFromDetail");
+  const librarySearch = document.getElementById("librarySearch");
 
   syncBtn?.addEventListener("click", async () => {
     if (!requireSettings("Sync")) return;
@@ -381,6 +408,13 @@ function bindEvents() {
     const target = detectedGames.find((game) => buildKey(game.name, game.exePath) === selectedKey);
     if (target) openOverrideEditor(target, selectedKey);
     setView("overrides");
+  });
+  librarySearch?.addEventListener("input", (event) => {
+    const target = event.target;
+    if (target && typeof target.value === "string") {
+      libraryFilter = target.value.trim().toLowerCase();
+      renderLibrary();
+    }
   });
 
   window.steamSyncer.onStatus(applyStatus);
