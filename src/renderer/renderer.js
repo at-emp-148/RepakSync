@@ -5,6 +5,7 @@ let selectedKey = null;
 let activity = [];
 let libraryFilter = "";
 let selectedAppId = null;
+let showAllGrid = false;
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -204,47 +205,64 @@ function setView(view) {
 
 function renderLibrary() {
   const libraryGrid = document.getElementById("libraryGrid");
+  const libraryCarousel = document.getElementById("libraryCarousel");
+  const libraryGridWrap = document.getElementById("libraryGridWrap");
+  const heroTitle = document.getElementById("heroTitle");
+  const heroMeta = document.getElementById("heroMeta");
+  const heroIcon = document.getElementById("heroIcon");
+  const libraryHero = document.getElementById("libraryHero");
   if (!libraryGrid) return;
   libraryGrid.innerHTML = "";
+  if (libraryCarousel) libraryCarousel.innerHTML = "";
   const totalDetected = document.getElementById("totalDetected");
   if (totalDetected) totalDetected.textContent = libraryGames.length;
   const filtered = libraryGames.filter((game) =>
     game.name.toLowerCase().includes(libraryFilter) ||
     game.source.toLowerCase().includes(libraryFilter)
   );
-  filtered.forEach((game) => {
-    const card = document.createElement("div");
-    card.className = "game-card";
-    if (selectedAppId === game.appId) card.classList.add("active");
-    const cover = document.createElement("div");
-    cover.className = "game-cover";
-    const coverFile = game.gridPath || game.heroPath;
-    if (coverFile) cover.style.backgroundImage = `url(${fileUrl(coverFile)})`;
-    cover.style.backgroundSize = "cover";
-    cover.style.backgroundPosition = "center";
 
-    if (game.iconPath) {
+  const featured = pickFeaturedGame(filtered);
+  if (heroTitle) heroTitle.textContent = featured ? featured.name : "No recent game";
+  if (heroMeta) {
+    heroMeta.textContent = featured
+      ? `${featured.source.toUpperCase()} · Last played ${formatLastPlayed(featured.lastPlayed)}`
+      : "Select a game to view details.";
+  }
+  if (heroIcon) {
+    heroIcon.innerHTML = "";
+    if (featured?.iconPath) {
       const icon = document.createElement("img");
-      icon.className = "game-cover__icon";
-      icon.src = fileUrl(game.iconPath);
-      cover.appendChild(icon);
+      icon.src = fileUrl(featured.iconPath);
+      icon.style.width = "100%";
+      icon.style.height = "100%";
+      icon.style.objectFit = "cover";
+      icon.style.borderRadius = "12px";
+      heroIcon.appendChild(icon);
     } else {
-      const placeholder = document.createElement("div");
-      placeholder.className = "game-cover__placeholder";
-      placeholder.textContent = game.name.slice(0, 1).toUpperCase();
-      cover.appendChild(placeholder);
+      heroIcon.textContent = featured ? featured.name.slice(0, 1).toUpperCase() : "★";
     }
-    const info = document.createElement("div");
-    info.className = "game-info";
-    const title = document.createElement("div");
-    title.className = "game-title";
-    title.textContent = game.name;
-    const sub = document.createElement("div");
-    sub.className = "game-sub";
-    sub.textContent = game.source.toUpperCase();
-    info.append(title, sub);
-    card.append(cover, info);
-    card.addEventListener("click", () => showDetails(game));
+  }
+  if (libraryHero) {
+    const heroImage = featured?.heroPath || featured?.gridPath;
+    libraryHero.style.backgroundImage = heroImage ? `url(${fileUrl(heroImage)})` : "none";
+    libraryHero.style.backgroundSize = "cover";
+    libraryHero.style.backgroundPosition = "center";
+  }
+
+  if (libraryCarousel) {
+    filtered.forEach((game) => {
+      const card = createGameCard(game);
+      card.classList.add("carousel-card");
+      libraryCarousel.appendChild(card);
+    });
+  }
+
+  if (libraryGridWrap) {
+    const shouldShow = showAllGrid || libraryFilter.length > 0;
+    libraryGridWrap.classList.toggle("hidden", !shouldShow);
+  }
+  filtered.forEach((game) => {
+    const card = createGameCard(game);
     libraryGrid.appendChild(card);
   });
 }
@@ -292,6 +310,53 @@ function showDetails(game) {
   }
 }
 
+function pickFeaturedGame(games) {
+  if (!games.length) return null;
+  const sorted = [...games].sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0));
+  return sorted[0];
+}
+
+function formatLastPlayed(lastPlayed) {
+  if (!lastPlayed || lastPlayed < 1000000000) return "Not available";
+  return new Date(lastPlayed * 1000).toLocaleString();
+}
+
+function createGameCard(game) {
+  const card = document.createElement("div");
+  card.className = "game-card";
+  if (selectedAppId === game.appId) card.classList.add("active");
+  const cover = document.createElement("div");
+  cover.className = "game-cover";
+  const coverFile = game.gridPath || game.heroPath;
+  if (coverFile) cover.style.backgroundImage = `url(${fileUrl(coverFile)})`;
+  cover.style.backgroundSize = "cover";
+  cover.style.backgroundPosition = "center";
+
+  if (game.iconPath) {
+    const icon = document.createElement("img");
+    icon.className = "game-cover__icon";
+    icon.src = fileUrl(game.iconPath);
+    cover.appendChild(icon);
+  } else {
+    const placeholder = document.createElement("div");
+    placeholder.className = "game-cover__placeholder";
+    placeholder.textContent = game.name.slice(0, 1).toUpperCase();
+    cover.appendChild(placeholder);
+  }
+  const info = document.createElement("div");
+  info.className = "game-info";
+  const title = document.createElement("div");
+  title.className = "game-title";
+  title.textContent = game.name;
+  const sub = document.createElement("div");
+  sub.className = "game-sub";
+  sub.textContent = game.source.toUpperCase();
+  info.append(title, sub);
+  card.append(cover, info);
+  card.addEventListener("click", () => showDetails(game));
+  return card;
+}
+
 function bindEvents() {
   document.querySelectorAll(".nav-item").forEach((item) => {
     item.addEventListener("click", () => setView(item.dataset.view));
@@ -313,6 +378,8 @@ function bindEvents() {
   const clearOverride = document.getElementById("clearOverride");
   const editOverrideFromDetail = document.getElementById("editOverrideFromDetail");
   const librarySearch = document.getElementById("librarySearch");
+  const seeAllBtn = document.getElementById("seeAllBtn");
+  const heroViewDetails = document.getElementById("heroViewDetails");
 
   syncBtn?.addEventListener("click", async () => {
     if (!requireSettings("Sync")) return;
@@ -415,6 +482,16 @@ function bindEvents() {
       libraryFilter = target.value.trim().toLowerCase();
       renderLibrary();
     }
+  });
+  seeAllBtn?.addEventListener("click", () => {
+    showAllGrid = true;
+    renderLibrary();
+    const gridWrap = document.getElementById("libraryGridWrap");
+    if (gridWrap) gridWrap.scrollIntoView({ behavior: "smooth" });
+  });
+  heroViewDetails?.addEventListener("click", () => {
+    const featured = pickFeaturedGame(libraryGames);
+    if (featured) showDetails(featured);
   });
 
   window.steamSyncer.onStatus(applyStatus);

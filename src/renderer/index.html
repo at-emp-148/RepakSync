@@ -138,10 +138,34 @@
             </div>
           </div>
 
-          <div class="library-layout">
-            <div class="library-grid" id="libraryGrid"></div>
+          <div class="library-hero" id="libraryHero">
+            <div class="library-hero__content">
+              <div class="library-hero__badge">Last Played</div>
+              <div class="library-hero__title" id="heroTitle">No recent game</div>
+              <div class="library-hero__meta" id="heroMeta">Select a game to view details.</div>
+              <div class="library-hero__actions">
+                <button id="heroViewDetails" class="btn small ghost">View Details</button>
+              </div>
+            </div>
+            <div class="library-hero__icon" id="heroIcon"></div>
+          </div>
 
-            <aside class="detail-panel hidden" id="detailPanel">
+          <div class="library-section">
+            <div class="section-header">
+              <h3>Most Popular</h3>
+              <button id="seeAllBtn" class="link-btn">See all</button>
+            </div>
+            <div class="carousel" id="libraryCarousel"></div>
+          </div>
+
+          <div class="library-section hidden" id="libraryGridWrap">
+            <div class="section-header">
+              <h3>All Games</h3>
+            </div>
+            <div class="library-grid" id="libraryGrid"></div>
+          </div>
+
+          <aside class="detail-panel hidden" id="detailPanel">
             <div class="detail-hero" id="detailHero">
               <div class="detail-hero__overlay">
                 <div class="detail-title" id="detailName">Game</div>
@@ -175,8 +199,7 @@
               </div>
             </div>
             <button id="editOverrideFromDetail" class="btn small">Edit Launch Override</button>
-            </aside>
-          </div>
+          </aside>
         </section>
 
         <section class="view" data-view="overrides">
