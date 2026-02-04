@@ -3,7 +3,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import psList from "ps-list";
-import { parse, stringify } from "steam-binary-vdf";
+import { readVdf, writeVdf } from "steam-binary-vdf";
 import { GameCandidate } from "../shared/types.js";
 
 const execFileAsync = promisify(execFile);
@@ -71,13 +71,13 @@ export type ShortcutsRoot = {
 export function readShortcuts(filePath: string): ShortcutsRoot {
   if (!fs.existsSync(filePath)) return { shortcuts: {} };
   const data = fs.readFileSync(filePath);
-  const parsed = parse(data) as ShortcutsRoot;
+  const parsed = readVdf(data) as ShortcutsRoot;
   if (!parsed.shortcuts) return { shortcuts: {} };
   return parsed;
 }
 
 export function writeShortcuts(filePath: string, root: ShortcutsRoot): void {
-  const bin = stringify(root);
+  const bin = writeVdf(root);
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, bin);
 }
