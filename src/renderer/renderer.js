@@ -28,8 +28,10 @@ const clearOverride = document.getElementById("clearOverride");
 let settings = null;
 let detectedGames = [];
 let selectedKey = null;
+let initError = null;
 
 function setIndicator(state) {
+  if (!statusIndicator) return;
   const colors = {
     idle: "#4de0c6",
     scanning: "#ffb347",
@@ -42,6 +44,7 @@ function setIndicator(state) {
 }
 
 function renderSettings() {
+  if (!folderList) return;
   folderList.innerHTML = "";
   settings.scanFolders.forEach((folder) => {
     const row = document.createElement("div");
@@ -59,8 +62,8 @@ function renderSettings() {
     row.append(label, remove);
     folderList.appendChild(row);
   });
-  knownStores.checked = settings.includeKnownStores;
-  apiKey.value = settings.steamGridDbApiKey || "";
+  if (knownStores) knownStores.checked = settings.includeKnownStores;
+  if (apiKey) apiKey.value = settings.steamGridDbApiKey || "";
 }
 
 function buildKey(name, exePath) {
@@ -68,6 +71,7 @@ function buildKey(name, exePath) {
 }
 
 function renderOverrides() {
+  if (!overrideList) return;
   overrideList.innerHTML = "";
   const overrides = settings.launchOverrides || {};
   detectedGames.forEach((game) => {
@@ -112,6 +116,7 @@ function renderOverrides() {
 }
 
 function openOverrideEditor(game, key) {
+  if (!overrideEditor || !overrideTitle || !overrideName || !overrideExe || !overrideDir || !overrideArgs) return;
   selectedKey = key;
   const override = (settings.launchOverrides || {})[key];
   overrideTitle.textContent = `Edit Override: ${game.name}`;
@@ -123,53 +128,53 @@ function openOverrideEditor(game, key) {
 }
 
 function applyStatus(status) {
-  statusText.textContent = status.message || "";
-  lastSync.textContent = status.lastSyncAt
+  if (statusText) statusText.textContent = status.message || "";
+  if (lastSync) lastSync.textContent = status.lastSyncAt
     ? new Date(status.lastSyncAt).toLocaleString()
     : "Never";
-  found.textContent = status.found ?? 0;
-  added.textContent = status.added ?? 0;
+  if (found) found.textContent = status.found ?? 0;
+  if (added) added.textContent = status.added ?? 0;
   setIndicator(status.state);
 }
 
-syncBtn.addEventListener("click", () => window.steamSyncer.sync());
-launchBtn.addEventListener("click", () => window.steamSyncer.launchSteam());
-addFolder.addEventListener("click", async () => {
+syncBtn?.addEventListener("click", () => window.steamSyncer.sync());
+launchBtn?.addEventListener("click", () => window.steamSyncer.launchSteam());
+addFolder?.addEventListener("click", async () => {
   const selected = await window.steamSyncer.chooseFolder();
   if (!selected) return;
   if (!settings.scanFolders.includes(selected)) settings.scanFolders.push(selected);
   settings = await window.steamSyncer.saveSettings(settings);
   renderSettings();
 });
-knownStores.addEventListener("change", async () => {
+knownStores?.addEventListener("change", async () => {
   settings.includeKnownStores = knownStores.checked;
   settings = await window.steamSyncer.saveSettings(settings);
 });
-saveSettings.addEventListener("click", async () => {
+saveSettings?.addEventListener("click", async () => {
   settings.steamGridDbApiKey = apiKey.value.trim();
   settings = await window.steamSyncer.saveSettings(settings);
 });
-openLogs.addEventListener("click", async () => {
+openLogs?.addEventListener("click", async () => {
   await window.steamSyncer.openLogs();
 });
-toggleApiKey.addEventListener("click", () => {
+toggleApiKey?.addEventListener("click", () => {
   const isHidden = apiKey.type === "password";
   apiKey.type = isHidden ? "text" : "password";
   toggleApiKey.textContent = isHidden ? "Hide" : "Show";
 });
-refreshGames.addEventListener("click", async () => {
+refreshGames?.addEventListener("click", async () => {
   detectedGames = await window.steamSyncer.getDetectedGames();
   renderOverrides();
 });
-pickExe.addEventListener("click", async () => {
+pickExe?.addEventListener("click", async () => {
   const selected = await window.steamSyncer.chooseExe();
   if (selected) overrideExe.value = selected;
 });
-pickDir.addEventListener("click", async () => {
+pickDir?.addEventListener("click", async () => {
   const selected = await window.steamSyncer.chooseFolder();
   if (selected) overrideDir.value = selected;
 });
-saveOverride.addEventListener("click", async () => {
+saveOverride?.addEventListener("click", async () => {
   if (!selectedKey) return;
   const overrides = settings.launchOverrides || {};
   overrides[selectedKey] = {
@@ -183,7 +188,7 @@ saveOverride.addEventListener("click", async () => {
   settings = await window.steamSyncer.saveSettings(settings);
   renderOverrides();
 });
-clearOverride.addEventListener("click", async () => {
+clearOverride?.addEventListener("click", async () => {
   if (!selectedKey) return;
   const overrides = settings.launchOverrides || {};
   delete overrides[selectedKey];
@@ -195,8 +200,14 @@ clearOverride.addEventListener("click", async () => {
 window.steamSyncer.onStatus(applyStatus);
 
 (async () => {
-  settings = await window.steamSyncer.getSettings();
-  renderSettings();
-  detectedGames = await window.steamSyncer.getDetectedGames();
-  renderOverrides();
+  try {
+    settings = await window.steamSyncer.getSettings();
+    renderSettings();
+    detectedGames = await window.steamSyncer.getDetectedGames();
+    renderOverrides();
+  } catch (error) {
+    initError = error;
+    console.error("Init failed", error);
+    if (statusText) statusText.textContent = "Init failed. Check logs/console.";
+  }
 })();
