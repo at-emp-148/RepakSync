@@ -21,10 +21,18 @@
           </div>
         </div>
         <nav class="nav">
-          <button class="nav-item active" data-view="dashboard">Dashboard</button>
-          <button class="nav-item" data-view="library">Library</button>
-          <button class="nav-item" data-view="overrides">Overrides</button>
-          <button class="nav-item" data-view="settings">Settings</button>
+          <button class="nav-item active" data-view="dashboard">
+            <span class="nav-icon">🏠</span> Dashboard
+          </button>
+          <button class="nav-item" data-view="library">
+            <span class="nav-icon">🎮</span> Library
+          </button>
+          <button class="nav-item" data-view="overrides">
+            <span class="nav-icon">🧩</span> Overrides
+          </button>
+          <button class="nav-item" data-view="settings">
+            <span class="nav-icon">⚙</span> Settings
+          </button>
         </nav>
       </aside>
 
@@ -36,6 +44,12 @@
           </div>
           <div class="actions">
             <button id="syncBtn" class="btn primary">Run Sync</button>
+            <button id="launchBtn" class="btn ghost">
+              <span class="icon">▶</span> Launch Steam
+            </button>
+            <button id="launchBigPictureBtn" class="btn ghost">
+              <span class="icon">⬛</span> Big Picture
+            </button>
           </div>
         </header>
 
@@ -163,13 +177,6 @@
 
         <section class="view" data-view="settings">
           <div class="settings-grid">
-            <div class="card">
-              <div class="card-title">Steam Launch</div>
-              <div class="actions">
-                <button id="launchBtn" class="btn ghost">Launch Steam</button>
-                <button id="launchBigPictureBtn" class="btn ghost">Big Picture</button>
-              </div>
-            </div>
             <div class="card">
               <div class="card-title">SteamGridDB</div>
               <label class="field">

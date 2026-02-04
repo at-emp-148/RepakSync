@@ -125,8 +125,6 @@ function setupIpc(): void {
   ipcMain.handle("launch-steam", async () => {
     if (syncing) return { ok: false, message: "Sync in progress" };
     log("info", "Launch Steam requested");
-    const settings = loadSettings();
-    await runSync(settings, updateStatus);
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteam(steamPath);
     return { ok: true };
@@ -134,8 +132,6 @@ function setupIpc(): void {
   ipcMain.handle("launch-steam-big-picture", async () => {
     if (syncing) return { ok: false, message: "Sync in progress" };
     log("info", "Launch Steam Big Picture requested");
-    const settings = loadSettings();
-    await runSync(settings, updateStatus);
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteamBigPicture(steamPath);
     return { ok: true };
