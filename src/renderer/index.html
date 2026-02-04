@@ -78,6 +78,45 @@
           <button id="openLogs" class="btn small ghost">Open Logs</button>
         </div>
       </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Launch Overrides</h2>
+          <div class="panel-actions">
+            <button id="refreshGames" class="btn small">Refresh</button>
+          </div>
+        </div>
+        <div id="overrideList" class="override-list"></div>
+        <div id="overrideEditor" class="override-editor hidden">
+          <h3 id="overrideTitle">Edit Launch Override</h3>
+          <label class="field">
+            <span>Display Name</span>
+            <input id="overrideName" type="text" />
+          </label>
+          <label class="field">
+            <span>Executable</span>
+            <div class="field-inline">
+              <input id="overrideExe" type="text" />
+              <button id="pickExe" class="btn small ghost" type="button">Pick</button>
+            </div>
+          </label>
+          <label class="field">
+            <span>Start Dir</span>
+            <div class="field-inline">
+              <input id="overrideDir" type="text" />
+              <button id="pickDir" class="btn small ghost" type="button">Pick</button>
+            </div>
+          </label>
+          <label class="field">
+            <span>Launch Options</span>
+            <input id="overrideArgs" type="text" placeholder="Optional" />
+          </label>
+          <div class="override-actions">
+            <button id="saveOverride" class="btn small">Save Override</button>
+            <button id="clearOverride" class="btn small ghost">Clear Override</button>
+          </div>
+        </div>
+      </section>
     </main>
 
     <script src="renderer.js"></script>

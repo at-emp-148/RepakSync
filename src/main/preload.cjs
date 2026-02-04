@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld("steamSyncer", {
   getSettings: () => ipcRenderer.invoke("get-settings"),
   saveSettings: (settings) => ipcRenderer.invoke("save-settings", settings),
   chooseFolder: () => ipcRenderer.invoke("choose-folder"),
+  chooseExe: () => ipcRenderer.invoke("choose-exe"),
+  getDetectedGames: () => ipcRenderer.invoke("get-detected-games"),
   sync: () => ipcRenderer.invoke("sync"),
   launchSteam: () => ipcRenderer.invoke("launch-steam"),
   openLogs: () => ipcRenderer.invoke("open-logs"),

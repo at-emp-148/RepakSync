@@ -6,6 +6,7 @@ import { runSync } from "./sync.js";
 import { getSteamPath, isSteamRunning, launchSteam } from "./steam.js";
 import { Settings, SyncStatus } from "../shared/types.js";
 import { getLogPath, log } from "./logger.js";
+import { getKnownStoreFolders, scanFolders } from "./scanner.js";
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -63,12 +64,7 @@ async function triggerSync(): Promise<void> {
   syncing = true;
   log("info", "Triggering sync");
   const settings = loadSettings();
-  const result = await runSync(
-    settings.scanFolders,
-    settings.includeKnownStores,
-    settings.steamGridDbApiKey,
-    updateStatus
-  );
+  const result = await runSync(settings, updateStatus);
   updateStatus(result.status);
   syncing = false;
 }
@@ -84,6 +80,21 @@ function setupIpc(): void {
     if (res.canceled || res.filePaths.length === 0) return null;
     return res.filePaths[0];
   });
+  ipcMain.handle("choose-exe", async () => {
+    const res = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "Executable", extensions: ["exe"] }]
+    });
+    if (res.canceled || res.filePaths.length === 0) return null;
+    return res.filePaths[0];
+  });
+  ipcMain.handle("get-detected-games", async () => {
+    const settings = loadSettings();
+    const folders = settings.includeKnownStores
+      ? [...settings.scanFolders, ...getKnownStoreFolders()]
+      : [...settings.scanFolders];
+    return scanFolders(folders);
+  });
   ipcMain.handle("sync", async () => {
     await triggerSync();
     return lastStatus;
@@ -97,12 +108,7 @@ function setupIpc(): void {
     if (syncing) return { ok: false, message: "Sync in progress" };
     log("info", "Launch Steam requested");
     const settings = loadSettings();
-    await runSync(
-      settings.scanFolders,
-      settings.includeKnownStores,
-      settings.steamGridDbApiKey,
-      updateStatus
-    );
+    await runSync(settings, updateStatus);
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteam(steamPath);
     return { ok: true };

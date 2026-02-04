@@ -5,7 +5,9 @@ import { Settings } from "../shared/types.js";
 
 const DEFAULT_SETTINGS: Settings = {
   scanFolders: ["C:\\Games", "D:\\Installed"],
-  includeKnownStores: true
+  includeKnownStores: true,
+  artworkRepairDone: false,
+  launchOverrides: {}
 };
 
 const SETTINGS_FILE = "settings.json";

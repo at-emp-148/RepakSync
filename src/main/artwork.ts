@@ -12,10 +12,12 @@ type SteamGridResponse<T> = {
   data: T;
 };
 
+export type AssetKey = "grid" | "gridWide" | "hero" | "logo" | "icon";
+
 type ArtworkResult = {
   downloaded: number;
   attempted: number;
-  files: Partial<Record<"grid" | "gridWide" | "hero" | "logo" | "icon", string>>;
+  files: Partial<Record<AssetKey, string>>;
   skipped?: boolean;
 };
 
@@ -38,26 +40,50 @@ export async function fetchArtworkSet(
       return result;
     }
 
-    const assets = [
-      missing.has("grid")
-        ? { key: "grid", type: "grid-portrait", url: await fetchGrid(apiKey, gameId, "600x900"), file: `${appId}_p` }
-        : null,
-      missing.has("gridWide")
-        ? { key: "gridWide", type: "grid-wide", url: await fetchGrid(apiKey, gameId, "460x215,920x430"), file: `${appId}` }
-        : null,
-      missing.has("hero")
-        ? { key: "hero", type: "hero", url: await fetchHero(apiKey, gameId), file: `${appId}_hero` }
-        : null,
-      missing.has("logo")
-        ? { key: "logo", type: "logo", url: await fetchLogo(apiKey, gameId), file: `${appId}_logo` }
-        : null,
-      missing.has("icon")
-        ? { key: "icon", type: "icon", url: await fetchIcon(apiKey, gameId), file: `${appId}_icon` }
-        : null
-    ] as const;
+    const assets: { key: AssetKey; type: string; url: string | null; file: string }[] = [];
+    if (missing.has("grid")) {
+      assets.push({
+        key: "grid",
+        type: "grid-portrait",
+        url: await fetchGrid(apiKey, gameId, "600x900"),
+        file: `${appId}_p`
+      });
+    }
+    if (missing.has("gridWide")) {
+      assets.push({
+        key: "gridWide",
+        type: "grid-wide",
+        url: await fetchGrid(apiKey, gameId, "460x215,920x430"),
+        file: `${appId}`
+      });
+    }
+    if (missing.has("hero")) {
+      assets.push({
+        key: "hero",
+        type: "hero",
+        url: await fetchHero(apiKey, gameId),
+        file: `${appId}_hero`
+      });
+    }
+    if (missing.has("logo")) {
+      assets.push({
+        key: "logo",
+        type: "logo",
+        url: await fetchLogo(apiKey, gameId),
+        file: `${appId}_logo`
+      });
+    }
+    if (missing.has("icon")) {
+      assets.push({
+        key: "icon",
+        type: "icon",
+        url: await fetchIcon(apiKey, gameId),
+        file: `${appId}_icon`
+      });
+    }
 
     for (const asset of assets) {
-      if (!asset || !asset.url) continue;
+      if (!asset.url) continue;
       result.attempted++;
       const ext = path.extname(new URL(asset.url).pathname) || ".png";
       const target = path.join(gridPath, `${asset.file}${ext}`);
@@ -128,7 +154,7 @@ async function fetchFirstUrl(apiKey: string, url: string): Promise<string | null
 async function downloadToFile(
   url: string,
   target: string,
-  kind: "grid" | "gridWide" | "hero" | "logo" | "icon"
+  kind: AssetKey
 ): Promise<string> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`download failed (${res.status})`);
@@ -145,7 +171,7 @@ async function downloadToFile(
 const ART_EXTS = [".png", ".jpg", ".jpeg"];
 const WEBP_EXT = ".webp";
 
-async function getMissingArtwork(
+export async function getMissingArtwork(
   gridPath: string,
   appId: number
 ): Promise<Set<"grid" | "gridWide" | "hero" | "logo" | "icon">> {
@@ -203,7 +229,7 @@ function cleanupWebp(dir: string, base: string): void {
   }
 }
 
-function resizeByKind(
+export function resizeByKind(
   pipeline: sharp.Sharp,
   kind: "grid" | "gridWide" | "hero" | "logo" | "icon"
 ): sharp.Sharp {

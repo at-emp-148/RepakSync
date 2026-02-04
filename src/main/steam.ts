@@ -213,7 +213,7 @@ export function addGamesToShortcuts(
       StartDir: `\"${game.startDir}\"`,
       icon: "",
       ShortcutPath: "",
-      LaunchOptions: "",
+      LaunchOptions: game.launchOptions ?? "",
       IsHidden: 0,
       AllowDesktopConfig: 1,
       AllowOverlay: 1,
