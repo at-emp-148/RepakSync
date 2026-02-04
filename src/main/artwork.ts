@@ -15,6 +15,7 @@ type ArtworkResult = {
   downloaded: number;
   attempted: number;
   files: Partial<Record<"grid" | "gridWide" | "hero" | "logo" | "icon", string>>;
+  skipped?: boolean;
 };
 
 export async function fetchArtworkSet(
@@ -24,6 +25,11 @@ export async function fetchArtworkSet(
   appId: number
 ): Promise<ArtworkResult> {
   const result: ArtworkResult = { downloaded: 0, attempted: 0, files: {} };
+  const missing = getMissingArtwork(gridPath, appId);
+  if (missing.size === 0) {
+    result.skipped = true;
+    return result;
+  }
   try {
     const gameId = await findGameId(apiKey, gameName);
     if (!gameId) {
@@ -32,15 +38,25 @@ export async function fetchArtworkSet(
     }
 
     const assets = [
-      { key: "grid", type: "grid-portrait", url: await fetchGrid(apiKey, gameId, "600x900"), file: `${appId}_p` },
-      { key: "gridWide", type: "grid-wide", url: await fetchGrid(apiKey, gameId, "920x430,460x215"), file: `${appId}` },
-      { key: "hero", type: "hero", url: await fetchHero(apiKey, gameId), file: `${appId}_hero` },
-      { key: "logo", type: "logo", url: await fetchLogo(apiKey, gameId), file: `${appId}_logo` },
-      { key: "icon", type: "icon", url: await fetchIcon(apiKey, gameId), file: `${appId}_icon` }
+      missing.has("grid")
+        ? { key: "grid", type: "grid-portrait", url: await fetchGrid(apiKey, gameId, "600x900"), file: `${appId}_p` }
+        : null,
+      missing.has("gridWide")
+        ? { key: "gridWide", type: "grid-wide", url: await fetchGrid(apiKey, gameId, "920x430,460x215"), file: `${appId}` }
+        : null,
+      missing.has("hero")
+        ? { key: "hero", type: "hero", url: await fetchHero(apiKey, gameId), file: `${appId}_hero` }
+        : null,
+      missing.has("logo")
+        ? { key: "logo", type: "logo", url: await fetchLogo(apiKey, gameId), file: `${appId}_logo` }
+        : null,
+      missing.has("icon")
+        ? { key: "icon", type: "icon", url: await fetchIcon(apiKey, gameId), file: `${appId}_icon` }
+        : null
     ] as const;
 
     for (const asset of assets) {
-      if (!asset.url) continue;
+      if (!asset || !asset.url) continue;
       result.attempted++;
       const ext = path.extname(new URL(asset.url).pathname) || ".png";
       const target = path.join(gridPath, `${asset.file}${ext}`);
@@ -63,7 +79,7 @@ export async function fetchArtworkSet(
 
 async function findGameId(apiKey: string, gameName: string): Promise<number | null> {
   const url = `${API_BASE}/search/autocomplete/${encodeURIComponent(gameName)}`;
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+  const res = await throttledFetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
   if (!res.ok) {
     log("warn", "SteamGridDB search failed", { gameName, status: res.status });
     return null;
@@ -96,17 +112,62 @@ async function fetchIcon(apiKey: string, gameId: number): Promise<string | null>
 }
 
 async function fetchFirstUrl(apiKey: string, url: string): Promise<string | null> {
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+  const res = await throttledFetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
   if (!res.ok) return null;
   const body = (await res.json()) as SteamGridResponse<{ url: string }[]>;
   if (!body.success || body.data.length === 0) return null;
-  return body.data[0].url;
+  const png = body.data.find((item) => item.url.toLowerCase().endsWith(".png"));
+  const jpg = body.data.find(
+    (item) =>
+      item.url.toLowerCase().endsWith(".jpg") || item.url.toLowerCase().endsWith(".jpeg")
+  );
+  return (png ?? jpg ?? body.data[0]).url;
 }
 
 async function downloadToFile(url: string, target: string): Promise<void> {
-  const res = await fetch(url);
+  const res = await throttledFetch(url);
   if (!res.ok) throw new Error(`download failed (${res.status})`);
   const buffer = Buffer.from(await res.arrayBuffer());
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, buffer);
+}
+
+const ART_EXTS = [".png", ".jpg", ".jpeg", ".webp"];
+
+function getMissingArtwork(
+  gridPath: string,
+  appId: number
+): Set<"grid" | "gridWide" | "hero" | "logo" | "icon"> {
+  const required = new Set<"grid" | "gridWide" | "hero" | "logo" | "icon">([
+    "grid",
+    "gridWide",
+    "hero",
+    "logo",
+    "icon"
+  ]);
+  if (hasAnyFile(gridPath, `${appId}_p`)) required.delete("grid");
+  if (hasAnyFile(gridPath, `${appId}`)) required.delete("gridWide");
+  if (hasAnyFile(gridPath, `${appId}_hero`)) required.delete("hero");
+  if (hasAnyFile(gridPath, `${appId}_logo`)) required.delete("logo");
+  if (hasAnyFile(gridPath, `${appId}_icon`)) required.delete("icon");
+  return required;
+}
+
+function hasAnyFile(dir: string, base: string): boolean {
+  return ART_EXTS.some((ext) => fs.existsSync(path.join(dir, `${base}${ext}`)));
+}
+
+let lastFetchAt = 0;
+const MIN_API_INTERVAL_MS = 350;
+
+async function throttledFetch(url: string, init?: RequestInit): Promise<Response> {
+  const now = Date.now();
+  const wait = Math.max(0, MIN_API_INTERVAL_MS - (now - lastFetchAt));
+  if (wait > 0) await sleep(wait);
+  lastFetchAt = Date.now();
+  return fetch(url, init);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
