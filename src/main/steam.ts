@@ -18,13 +18,13 @@ export async function getSteamPath(): Promise<string | null> {
       "/v",
       "SteamPath"
     ]);
+    log("debug", "HKCU SteamPath registry output", { stdout });
     const line = stdout
       .split("\n")
-      .find((l) => l.toLowerCase().includes("steampath"));
-    if (!line) return null;
-    const parts = line.trim().split(/\s+/);
-    const value = parts[parts.length - 1];
-    return value.replace(/\//g, "\\");
+      .find((l) => l.toLowerCase().includes("steampath") && l.toLowerCase().includes("reg_sz"));
+    const value = extractRegistryValue(line);
+    const normalized = normalizeSteamPath(value);
+    if (normalized) return normalized;
   } catch {
     // fall through
   }
@@ -35,13 +35,13 @@ export async function getSteamPath(): Promise<string | null> {
       "/v",
       "InstallPath"
     ]);
+    log("debug", "HKLM InstallPath registry output", { stdout });
     const line = stdout
       .split("\n")
-      .find((l) => l.toLowerCase().includes("installpath"));
-    if (!line) return null;
-    const parts = line.trim().split(/\s+/);
-    const value = parts[parts.length - 1];
-    return value.replace(/\//g, "\\");
+      .find((l) => l.toLowerCase().includes("installpath") && l.toLowerCase().includes("reg_sz"));
+    const value = extractRegistryValue(line);
+    const normalized = normalizeSteamPath(value);
+    if (normalized) return normalized;
   } catch {
     // fall through
   }
@@ -51,6 +51,24 @@ export async function getSteamPath(): Promise<string | null> {
   ];
   for (const candidate of defaults) {
     if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
+function extractRegistryValue(line?: string): string | null {
+  if (!line) return null;
+  const match = line.match(/REG_SZ\\s+(.+)$/i);
+  if (!match) return null;
+  return match[1].trim();
+}
+
+function normalizeSteamPath(value: string | null): string | null {
+  if (!value) return null;
+  const cleaned = value.replace(/\//g, "\\").replace(/^\"|\"$/g, "");
+  if (cleaned.includes(":")) return cleaned;
+  const lowered = cleaned.toLowerCase();
+  if (lowered === "(x86)\\steam" || lowered.endsWith("\\steam")) {
+    return "C:\\Program Files (x86)\\Steam";
   }
   return null;
 }
