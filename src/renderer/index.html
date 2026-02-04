@@ -5,123 +5,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self';"
+      content="default-src 'self'; img-src 'self' data: https: file:; style-src 'self' 'unsafe-inline'; script-src 'self';"
     />
     <title>Steam Syncer</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="bg">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="orb orb-3"></div>
-    </div>
-
-    <main class="shell">
-      <header class="header">
-        <div>
-          <p class="eyebrow">Steam Syncer</p>
-          <h1>Keep your library unified.</h1>
-          <p class="sub">Detect games across stores, sync them to Steam, and grab artwork automatically.</p>
-        </div>
-        <div class="actions">
-          <button id="syncBtn" class="btn primary">Run Sync</button>
-          <button id="launchBtn" class="btn ghost">Launch Steam</button>
-        </div>
-      </header>
-
-      <section class="status">
-        <div class="status-card">
-          <div class="status-indicator" id="statusIndicator"></div>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-dot"></span>
           <div>
-            <p class="label">Status</p>
-            <p class="value" id="statusText">Ready.</p>
+            <div class="brand-title">Steam Syncer</div>
+            <div class="brand-sub">Repacks Library</div>
           </div>
         </div>
-        <div class="status-card">
-          <p class="label">Last Sync</p>
-          <p class="value" id="lastSync">Never</p>
-        </div>
-        <div class="status-card">
-          <p class="label">Found</p>
-          <p class="value" id="found">0</p>
-        </div>
-        <div class="status-card">
-          <p class="label">Added</p>
-          <p class="value" id="added">0</p>
-        </div>
-      </section>
+        <nav class="nav">
+          <button class="nav-item active" data-view="dashboard">Dashboard</button>
+          <button class="nav-item" data-view="library">Library</button>
+          <button class="nav-item" data-view="overrides">Overrides</button>
+          <button class="nav-item" data-view="settings">Settings</button>
+        </nav>
+      </aside>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h2>Scan Folders</h2>
-          <div class="panel-actions">
-            <button id="addFolder" class="btn small">Add Folder</button>
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <h1 id="pageTitle">Dashboard</h1>
+            <p id="pageSubtitle">Local games sync status and activity.</p>
           </div>
-        </div>
-        <div class="folder-list" id="folderList"></div>
-        <label class="toggle">
-          <input id="knownStores" type="checkbox" />
-          <span>Include known store folders (Epic, GOG)</span>
-        </label>
-      </section>
+          <div class="actions">
+            <button id="syncBtn" class="btn primary">Run Sync</button>
+          </div>
+        </header>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h2>Artwork</h2>
-        </div>
-        <div class="artwork">
-          <label class="field">
-            <span>SteamGridDB API Key</span>
-            <div class="field-inline">
-              <input id="apiKey" type="password" placeholder="Paste API key" />
-              <button id="toggleApiKey" class="btn small ghost" type="button">Show</button>
+        <section class="view active" data-view="dashboard">
+          <div class="grid-4">
+            <div class="card">
+              <div class="card-title">Status</div>
+              <div class="status-row">
+                <span class="status-dot" id="statusIndicator"></span>
+                <span id="statusText">Ready.</span>
+              </div>
             </div>
-          </label>
-          <button id="saveSettings" class="btn small">Save Settings</button>
-          <button id="openLogs" class="btn small ghost">Open Logs</button>
-        </div>
-      </section>
+            <div class="card">
+              <div class="card-title">Last Sync</div>
+              <div class="card-value" id="lastSync">Never</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Detected</div>
+              <div class="card-value" id="found">0</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Added</div>
+              <div class="card-value" id="added">0</div>
+            </div>
+          </div>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h2>Launch Overrides</h2>
-          <div class="panel-actions">
-            <button id="refreshGames" class="btn small">Refresh</button>
-          </div>
-        </div>
-        <div id="overrideList" class="override-list"></div>
-        <div id="overrideEditor" class="override-editor hidden">
-          <h3 id="overrideTitle">Edit Launch Override</h3>
-          <label class="field">
-            <span>Display Name</span>
-            <input id="overrideName" type="text" />
-          </label>
-          <label class="field">
-            <span>Executable</span>
-            <div class="field-inline">
-              <input id="overrideExe" type="text" />
-              <button id="pickExe" class="btn small ghost" type="button">Pick</button>
+          <div class="split">
+            <div class="card">
+              <div class="card-title">Sync Summary</div>
+              <div class="summary">
+                <div class="summary-item">
+                  <span>Total Detected</span>
+                  <strong id="totalDetected">0</strong>
+                </div>
+                <div class="summary-item">
+                  <span>Overrides</span>
+                  <strong id="overrideCount">0</strong>
+                </div>
+                <div class="summary-item">
+                  <span>Pending Artwork</span>
+                  <strong id="pendingArtwork">0</strong>
+                </div>
+              </div>
             </div>
-          </label>
-          <label class="field">
-            <span>Start Dir</span>
-            <div class="field-inline">
-              <input id="overrideDir" type="text" />
-              <button id="pickDir" class="btn small ghost" type="button">Pick</button>
+            <div class="card">
+              <div class="card-title">Recent Activity</div>
+              <div class="activity" id="activityLog"></div>
             </div>
-          </label>
-          <label class="field">
-            <span>Launch Options</span>
-            <input id="overrideArgs" type="text" placeholder="Optional" />
-          </label>
-          <div class="override-actions">
-            <button id="saveOverride" class="btn small">Save Override</button>
-            <button id="clearOverride" class="btn small ghost">Clear Override</button>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+
+        <section class="view" data-view="library">
+          <div class="library-grid" id="libraryGrid"></div>
+          <aside class="detail-panel hidden" id="detailPanel">
+            <div class="detail-header">
+              <div class="detail-title" id="detailName">Game</div>
+              <div class="detail-sub" id="detailSource">Source</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">AppID</div>
+              <div class="detail-value" id="detailAppId">-</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Executable</div>
+              <div class="detail-value" id="detailExe">-</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Start Dir</div>
+              <div class="detail-value" id="detailStartDir">-</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Launch Options</div>
+              <div class="detail-value" id="detailArgs">-</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Last Played</div>
+              <div class="detail-value" id="detailLastPlayed">-</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Artwork</div>
+              <div class="detail-value" id="detailArtwork">-</div>
+            </div>
+            <button id="editOverrideFromDetail" class="btn small">Edit Launch Override</button>
+          </aside>
+        </section>
+
+        <section class="view" data-view="overrides">
+          <div class="panel-header">
+            <h2>Launch Overrides</h2>
+            <div class="panel-actions">
+              <button id="refreshGames" class="btn small">Refresh</button>
+            </div>
+          </div>
+          <div id="overrideList" class="override-list"></div>
+          <div id="overrideEditor" class="override-editor hidden">
+            <h3 id="overrideTitle">Edit Launch Override</h3>
+            <label class="field">
+              <span>Display Name</span>
+              <input id="overrideName" type="text" />
+            </label>
+            <label class="field">
+              <span>Executable</span>
+              <div class="field-inline">
+                <input id="overrideExe" type="text" />
+                <button id="pickExe" class="btn small ghost" type="button">Pick</button>
+              </div>
+            </label>
+            <label class="field">
+              <span>Start Dir</span>
+              <div class="field-inline">
+                <input id="overrideDir" type="text" />
+                <button id="pickDir" class="btn small ghost" type="button">Pick</button>
+              </div>
+            </label>
+            <label class="field">
+              <span>Launch Options</span>
+              <input id="overrideArgs" type="text" placeholder="Optional" />
+            </label>
+            <div class="override-actions">
+              <button id="saveOverride" class="btn small">Save Override</button>
+              <button id="clearOverride" class="btn small ghost">Clear Override</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="settings">
+          <div class="settings-grid">
+            <div class="card">
+              <div class="card-title">Steam Launch</div>
+              <div class="actions">
+                <button id="launchBtn" class="btn ghost">Launch Steam</button>
+                <button id="launchBigPictureBtn" class="btn ghost">Big Picture</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">SteamGridDB</div>
+              <label class="field">
+                <span>API Key</span>
+                <div class="field-inline">
+                  <input id="apiKey" type="password" placeholder="Paste API key" />
+                  <button id="toggleApiKey" class="btn small ghost" type="button">Show</button>
+                </div>
+              </label>
+              <div class="actions">
+                <button id="saveSettings" class="btn small">Save Settings</button>
+                <button id="openLogs" class="btn small ghost">Open Logs</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Scan Folders</div>
+              <div class="panel-actions">
+                <button id="addFolder" class="btn small">Add Folder</button>
+              </div>
+              <div class="folder-list" id="folderList"></div>
+              <label class="toggle">
+                <input id="knownStores" type="checkbox" />
+                <span>Include known store folders (Epic, GOG)</span>
+              </label>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
 
     <script src="renderer.js"></script>
   </body>

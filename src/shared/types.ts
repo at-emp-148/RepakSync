@@ -32,3 +32,16 @@ export type LaunchOverride = {
   startDir: string;
   launchOptions?: string;
 };
+
+export type LibraryGame = {
+  name: string;
+  source: "custom" | "epic" | "gog" | "other";
+  appId: number;
+  exePath: string;
+  startDir: string;
+  launchOptions: string;
+  lastPlayed?: number;
+  iconPath?: string;
+  gridPath?: string;
+  heroPath?: string;
+};

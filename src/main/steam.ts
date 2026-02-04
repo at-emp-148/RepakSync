@@ -90,6 +90,13 @@ export async function launchSteam(steamPath: string): Promise<void> {
   }
 }
 
+export async function launchSteamBigPicture(steamPath: string): Promise<void> {
+  const exe = path.join(steamPath, "steam.exe");
+  if (fs.existsSync(exe)) {
+    execFile(exe, ["-bigpicture"], { windowsHide: true });
+  }
+}
+
 export function getUserdataPath(steamPath: string): string {
   return path.join(steamPath, "userdata");
 }

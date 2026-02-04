@@ -6,8 +6,10 @@ contextBridge.exposeInMainWorld("steamSyncer", {
   chooseFolder: () => ipcRenderer.invoke("choose-folder"),
   chooseExe: () => ipcRenderer.invoke("choose-exe"),
   getDetectedGames: () => ipcRenderer.invoke("get-detected-games"),
+  getLibraryGames: () => ipcRenderer.invoke("get-library-games"),
   sync: () => ipcRenderer.invoke("sync"),
   launchSteam: () => ipcRenderer.invoke("launch-steam"),
+  launchSteamBigPicture: () => ipcRenderer.invoke("launch-steam-big-picture"),
   openLogs: () => ipcRenderer.invoke("open-logs"),
   onStatus: (handler) => {
     ipcRenderer.on("status", (_, status) => handler(status));

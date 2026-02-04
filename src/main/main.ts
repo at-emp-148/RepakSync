@@ -3,8 +3,20 @@ import path from "node:path";
 import fs from "node:fs";
 import { loadSettings, saveSettings } from "./settings.js";
 import { runSync } from "./sync.js";
-import { getSteamPath, isSteamRunning, launchSteam } from "./steam.js";
-import { Settings, SyncStatus } from "../shared/types.js";
+import {
+  buildShortcutKey,
+  computeAppId,
+  computeShortcutAppId,
+  findPrimarySteamUserId,
+  getShortcutAppId,
+  getSteamPath,
+  getUserdataPath,
+  isSteamRunning,
+  launchSteam,
+  launchSteamBigPicture,
+  readShortcuts
+} from "./steam.js";
+import { LibraryGame, Settings, SyncStatus } from "../shared/types.js";
 import { getLogPath, log } from "./logger.js";
 import { getKnownStoreFolders, scanFolders } from "./scanner.js";
 
@@ -96,6 +108,10 @@ function setupIpc(): void {
       : [...settings.scanFolders];
     return scanFolders(folders);
   });
+  ipcMain.handle("get-library-games", async () => {
+    const settings = loadSettings();
+    return buildLibraryGames(settings);
+  });
   ipcMain.handle("sync", async () => {
     log("info", "Sync requested via UI");
     await triggerSync();
@@ -113,6 +129,15 @@ function setupIpc(): void {
     await runSync(settings, updateStatus);
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteam(steamPath);
+    return { ok: true };
+  });
+  ipcMain.handle("launch-steam-big-picture", async () => {
+    if (syncing) return { ok: false, message: "Sync in progress" };
+    log("info", "Launch Steam Big Picture requested");
+    const settings = loadSettings();
+    await runSync(settings, updateStatus);
+    const steamPath = await getSteamPath();
+    if (steamPath) await launchSteamBigPicture(steamPath);
     return { ok: true };
   });
 }
@@ -149,3 +174,74 @@ app.on("activate", () => {
   if (mainWindow === null) mainWindow = createWindow();
   mainWindow.show();
 });
+
+async function buildLibraryGames(settings: Settings): Promise<LibraryGame[]> {
+  const folders = settings.includeKnownStores
+    ? [...settings.scanFolders, ...getKnownStoreFolders()]
+    : [...settings.scanFolders];
+  const games = scanFolders(folders);
+  const steamPath = await getSteamPath();
+  if (!steamPath) return [];
+  const userdataPath = getUserdataPath(steamPath);
+  const userId = findPrimarySteamUserId(steamPath, userdataPath);
+  if (!userId) return [];
+  const shortcutsPath = path.join(userdataPath, userId, "config", "shortcuts.vdf");
+  const gridPath = path.join(userdataPath, userId, "config", "grid");
+  const root = readShortcuts(shortcutsPath);
+  const shortcutIndex = new Map<string, Record<string, unknown>>();
+  for (const key of Object.keys(root.shortcuts || {})) {
+    const entry = root.shortcuts[key];
+    const appname = String(entry.appname ?? "");
+    const exe = String(entry.exe ?? "");
+    shortcutIndex.set(buildShortcutKey(appname, exe), entry);
+  }
+  const overrides = settings.launchOverrides ?? {};
+  return games.map((game) => {
+    const key = buildShortcutKey(game.name, game.exePath);
+    const entry = shortcutIndex.get(key);
+    const override = overrides[key];
+    const effective = override
+      ? {
+          ...game,
+          name: override.displayName || game.name,
+          exePath: override.exePath,
+          startDir: override.startDir,
+          launchOptions: override.launchOptions ?? ""
+        }
+      : game;
+    const appId = entry
+      ? getShortcutAppId(entry) ?? computeShortcutAppId(entry)
+      : computeAppId(effective.name, `\"${effective.exePath}\"`);
+    const lastPlayed = parseLastPlayed(entry?.LastPlayTime);
+    return {
+      name: effective.name,
+      source: effective.source,
+      appId,
+      exePath: effective.exePath,
+      startDir: effective.startDir,
+      launchOptions: effective.launchOptions ?? "",
+      lastPlayed,
+      iconPath: pickArtwork(gridPath, `${appId}_icon`),
+      gridPath: pickArtwork(gridPath, `${appId}_p`),
+      heroPath: pickArtwork(gridPath, `${appId}_hero`)
+    };
+  });
+}
+
+function parseLastPlayed(value: unknown): number | undefined {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function pickArtwork(dir: string, base: string): string | undefined {
+  const exts = [".png", ".jpg", ".jpeg"];
+  for (const ext of exts) {
+    const filePath = path.join(dir, `${base}${ext}`);
+    if (fs.existsSync(filePath)) return filePath;
+  }
+  return undefined;
+}
