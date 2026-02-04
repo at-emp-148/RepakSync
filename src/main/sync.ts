@@ -7,6 +7,7 @@ import {
   buildShortcutKey,
   closeSteam,
   computeAppId,
+  computeShortcutAppId,
   findPrimarySteamUserId,
   getShortcutAppId,
   getSteamPath,
@@ -99,10 +100,22 @@ export async function runSync(
     const targets = games.map((game) => {
       const key = buildShortcutKey(game.name, game.exePath);
       const entry = shortcutIndex.get(key);
-      const appId = entry
-        ? getShortcutAppId(entry) ?? computeAppId(String(entry.appname ?? game.name), String(entry.exe ?? game.exePath))
+      let appId = entry
+        ? getShortcutAppId(entry) ?? computeShortcutAppId(entry)
         : computeAppId(game.name, game.exePath);
-      if (entry && entry.appid == null) entry.appid = appId;
+      if (entry) {
+        const expected = computeShortcutAppId(entry);
+        if (getShortcutAppId(entry) !== expected) {
+          entry.appid = expected;
+          appId = expected;
+          log("info", "Updated shortcut appid to match Steam algorithm", {
+            game: game.name,
+            appId: expected
+          });
+        } else if (entry.appid == null) {
+          entry.appid = appId;
+        }
+      }
       return { game, entry, appId };
     });
 

@@ -204,11 +204,12 @@ export function addGamesToShortcuts(
   for (const game of games) {
     const key = `${game.name.trim().toLowerCase()}::${normalizeExe(game.exePath)}`;
     if (existing.has(key)) continue;
-    const appid = computeAppId(game.name, game.exePath);
+    const exeField = `\"${game.exePath}\"`;
+    const appid = computeAppId(game.name, exeField);
     root.shortcuts[String(nextIndex)] = {
       appid,
       appname: game.name,
-      exe: `\"${game.exePath}\"`,
+      exe: exeField,
       StartDir: `\"${game.startDir}\"`,
       icon: "",
       ShortcutPath: "",
@@ -248,6 +249,12 @@ export function getShortcutAppId(entry: Record<string, unknown>): number | null 
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+}
+
+export function computeShortcutAppId(entry: Record<string, unknown>): number {
+  const appname = String(entry.appname ?? "");
+  const exe = String(entry.exe ?? "");
+  return computeAppId(appname, exe);
 }
 
 export function dedupeShortcuts(root: ShortcutsRoot): { removed: number } {
