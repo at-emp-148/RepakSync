@@ -79,7 +79,7 @@ export async function fetchArtworkSet(
 
 async function findGameId(apiKey: string, gameName: string): Promise<number | null> {
   const url = `${API_BASE}/search/autocomplete/${encodeURIComponent(gameName)}`;
-  const res = await throttledFetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
   if (!res.ok) {
     log("warn", "SteamGridDB search failed", { gameName, status: res.status });
     return null;
@@ -112,7 +112,7 @@ async function fetchIcon(apiKey: string, gameId: number): Promise<string | null>
 }
 
 async function fetchFirstUrl(apiKey: string, url: string): Promise<string | null> {
-  const res = await throttledFetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
   if (!res.ok) return null;
   const body = (await res.json()) as SteamGridResponse<{ url: string }[]>;
   if (!body.success || body.data.length === 0) return null;
@@ -125,7 +125,7 @@ async function fetchFirstUrl(apiKey: string, url: string): Promise<string | null
 }
 
 async function downloadToFile(url: string, target: string): Promise<void> {
-  const res = await throttledFetch(url);
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`download failed (${res.status})`);
   const buffer = Buffer.from(await res.arrayBuffer());
   fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -155,19 +155,4 @@ function getMissingArtwork(
 
 function hasAnyFile(dir: string, base: string): boolean {
   return ART_EXTS.some((ext) => fs.existsSync(path.join(dir, `${base}${ext}`)));
-}
-
-let lastFetchAt = 0;
-const MIN_API_INTERVAL_MS = 350;
-
-async function throttledFetch(url: string, init?: RequestInit): Promise<Response> {
-  const now = Date.now();
-  const wait = Math.max(0, MIN_API_INTERVAL_MS - (now - lastFetchAt));
-  if (wait > 0) await sleep(wait);
-  lastFetchAt = Date.now();
-  return fetch(url, init);
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
