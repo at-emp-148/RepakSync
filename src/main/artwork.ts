@@ -26,7 +26,7 @@ export async function fetchArtworkSet(
   appId: number
 ): Promise<ArtworkResult> {
   const result: ArtworkResult = { downloaded: 0, attempted: 0, files: {} };
-  const missing = getMissingArtwork(gridPath, appId);
+  const missing = await getMissingArtwork(gridPath, appId);
   if (missing.size === 0) {
     result.skipped = true;
     return result;
@@ -62,7 +62,7 @@ export async function fetchArtworkSet(
       const ext = path.extname(new URL(asset.url).pathname) || ".png";
       const target = path.join(gridPath, `${asset.file}${ext}`);
       try {
-        const written = await downloadToFile(asset.url, target);
+        const written = await downloadToFile(asset.url, target, asset.key);
         result.downloaded++;
         result.files[asset.key] = written;
         log("info", "Artwork downloaded", { gameName, type: asset.type, target });
@@ -125,28 +125,30 @@ async function fetchFirstUrl(apiKey: string, url: string): Promise<string | null
   return (png ?? jpg ?? body.data[0]).url;
 }
 
-async function downloadToFile(url: string, target: string): Promise<string> {
+async function downloadToFile(
+  url: string,
+  target: string,
+  kind: "grid" | "gridWide" | "hero" | "logo" | "icon"
+): Promise<string> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`download failed (${res.status})`);
   const buffer = Buffer.from(await res.arrayBuffer());
   fs.mkdirSync(path.dirname(target), { recursive: true });
-  if (url.toLowerCase().endsWith(".webp")) {
-    const pngTarget = target.replace(/\.[^.]+$/, ".png");
-    const converted = await sharp(buffer).png().toBuffer();
-    fs.writeFileSync(pngTarget, converted);
-    return pngTarget;
-  }
-  fs.writeFileSync(target, buffer);
-  return target;
+  const pngTarget = target.replace(/\.[^.]+$/, ".png");
+  const pipeline = sharp(buffer);
+  const resized = resizeByKind(pipeline, kind);
+  const output = await resized.png().toBuffer();
+  fs.writeFileSync(pngTarget, output);
+  return pngTarget;
 }
 
 const ART_EXTS = [".png", ".jpg", ".jpeg"];
 const WEBP_EXT = ".webp";
 
-function getMissingArtwork(
+async function getMissingArtwork(
   gridPath: string,
   appId: number
-): Set<"grid" | "gridWide" | "hero" | "logo" | "icon"> {
+): Promise<Set<"grid" | "gridWide" | "hero" | "logo" | "icon">> {
   const required = new Set<"grid" | "gridWide" | "hero" | "logo" | "icon">([
     "grid",
     "gridWide",
@@ -154,11 +156,11 @@ function getMissingArtwork(
     "logo",
     "icon"
   ]);
-  if (hasAnyFile(gridPath, `${appId}_p`)) required.delete("grid");
-  if (hasAnyFile(gridPath, `${appId}`)) required.delete("gridWide");
-  if (hasAnyFile(gridPath, `${appId}_hero`)) required.delete("hero");
+  if (await hasImageWithSize(gridPath, `${appId}_p`, 600, 900)) required.delete("grid");
+  if (await hasImageWithSize(gridPath, `${appId}`, 460, 215)) required.delete("gridWide");
+  if (await hasImageWithSize(gridPath, `${appId}_hero`, 3840, 1240)) required.delete("hero");
   if (hasAnyFile(gridPath, `${appId}_logo`)) required.delete("logo");
-  if (hasAnyFile(gridPath, `${appId}_icon`)) required.delete("icon");
+  if (await hasImageWithSize(gridPath, `${appId}_icon`, 256, 256)) required.delete("icon");
   cleanupWebp(gridPath, `${appId}_p`);
   cleanupWebp(gridPath, `${appId}`);
   cleanupWebp(gridPath, `${appId}_hero`);
@@ -171,6 +173,25 @@ function hasAnyFile(dir: string, base: string): boolean {
   return ART_EXTS.some((ext) => fs.existsSync(path.join(dir, `${base}${ext}`)));
 }
 
+async function hasImageWithSize(
+  dir: string,
+  base: string,
+  width: number,
+  height: number
+): Promise<boolean> {
+  for (const ext of ART_EXTS) {
+    const filePath = path.join(dir, `${base}${ext}`);
+    if (!fs.existsSync(filePath)) continue;
+    try {
+      const meta = await sharp(filePath).metadata();
+      if (meta.width === width && meta.height === height) return true;
+    } catch {
+      // ignore corrupted image
+    }
+  }
+  return false;
+}
+
 function cleanupWebp(dir: string, base: string): void {
   const webp = path.join(dir, `${base}${WEBP_EXT}`);
   if (fs.existsSync(webp) && !hasAnyFile(dir, base)) {
@@ -179,5 +200,24 @@ function cleanupWebp(dir: string, base: string): void {
     } catch {
       // ignore cleanup errors
     }
+  }
+}
+
+function resizeByKind(
+  pipeline: sharp.Sharp,
+  kind: "grid" | "gridWide" | "hero" | "logo" | "icon"
+): sharp.Sharp {
+  switch (kind) {
+    case "grid":
+      return pipeline.resize(600, 900, { fit: "cover" });
+    case "gridWide":
+      return pipeline.resize(460, 215, { fit: "cover" });
+    case "hero":
+      return pipeline.resize(3840, 1240, { fit: "cover" });
+    case "icon":
+      return pipeline.resize(256, 256, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } });
+    case "logo":
+    default:
+      return pipeline;
   }
 }
