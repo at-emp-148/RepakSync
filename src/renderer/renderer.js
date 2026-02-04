@@ -6,6 +6,9 @@ let activity = [];
 let libraryFilter = "";
 let selectedAppId = null;
 let showAllGrid = false;
+let historyStack = [{ view: "dashboard", payload: null }];
+let historyIndex = 0;
+let currentGame = null;
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -203,6 +206,47 @@ function setView(view) {
   if (pageSubtitle) pageSubtitle.textContent = pageSubtitles[view] || "";
 }
 
+function navigate(view, payload = null, replace = false) {
+  if (replace) {
+    historyStack[historyIndex] = { view, payload };
+  } else {
+    historyStack = historyStack.slice(0, historyIndex + 1);
+    historyStack.push({ view, payload });
+    historyIndex = historyStack.length - 1;
+  }
+  setView(view);
+  updateNavButtons();
+}
+
+function updateNavButtons() {
+  const backBtn = document.getElementById("navBack");
+  const forwardBtn = document.getElementById("navForward");
+  if (backBtn) backBtn.disabled = historyIndex <= 0;
+  if (forwardBtn) forwardBtn.disabled = historyIndex >= historyStack.length - 1;
+}
+
+function goBack() {
+  if (historyIndex <= 0) return;
+  historyIndex -= 1;
+  const state = historyStack[historyIndex];
+  setView(state.view);
+  if (state.view === "game" && state.payload) {
+    openGamePage(state.payload, true);
+  }
+  updateNavButtons();
+}
+
+function goForward() {
+  if (historyIndex >= historyStack.length - 1) return;
+  historyIndex += 1;
+  const state = historyStack[historyIndex];
+  setView(state.view);
+  if (state.view === "game" && state.payload) {
+    openGamePage(state.payload, true);
+  }
+  updateNavButtons();
+}
+
 function renderLibrary() {
   const libraryGrid = document.getElementById("libraryGrid");
   const libraryCarousel = document.getElementById("libraryCarousel");
@@ -251,8 +295,7 @@ function renderLibrary() {
 
   if (libraryCarousel) {
     filtered.forEach((game) => {
-      const card = createGameCard(game);
-      card.classList.add("carousel-card");
+      const card = createGameCard(game, "carousel");
       libraryCarousel.appendChild(card);
     });
   }
@@ -262,13 +305,16 @@ function renderLibrary() {
     libraryGridWrap.classList.toggle("hidden", !shouldShow);
   }
   filtered.forEach((game) => {
-    const card = createGameCard(game);
+    const card = createGameCard(game, "grid");
     libraryGrid.appendChild(card);
   });
 }
 
 function showDetails(game) {
-  const detailPanel = document.getElementById("detailPanel");
+  openGamePage(game, false);
+}
+
+function openGamePage(game, replace) {
   const detailHero = document.getElementById("detailHero");
   const detailName = document.getElementById("detailName");
   const detailSource = document.getElementById("detailSource");
@@ -278,8 +324,7 @@ function showDetails(game) {
   const detailArgs = document.getElementById("detailArgs");
   const detailLastPlayed = document.getElementById("detailLastPlayed");
   const detailArtwork = document.getElementById("detailArtwork");
-  if (!detailPanel) return;
-  detailPanel.classList.remove("hidden");
+  currentGame = game;
   selectedKey = buildKey(game.name, game.exePath);
   selectedAppId = game.appId;
   renderLibrary();
@@ -308,6 +353,7 @@ function showDetails(game) {
     ];
     detailArtwork.textContent = status.join(" · ");
   }
+  navigate("game", game, replace);
 }
 
 function pickFeaturedGame(games) {
@@ -321,13 +367,14 @@ function formatLastPlayed(lastPlayed) {
   return new Date(lastPlayed * 1000).toLocaleString();
 }
 
-function createGameCard(game) {
+function createGameCard(game, variant) {
   const card = document.createElement("div");
   card.className = "game-card";
   if (selectedAppId === game.appId) card.classList.add("active");
+  if (variant) card.classList.add(`${variant}-card`);
   const cover = document.createElement("div");
   cover.className = "game-cover";
-  const coverFile = game.gridPath || game.heroPath;
+  const coverFile = variant === "carousel" ? (game.heroPath || game.gridPath) : game.gridPath || game.heroPath;
   if (coverFile) cover.style.backgroundImage = `url(${fileUrl(coverFile)})`;
   cover.style.backgroundSize = "cover";
   cover.style.backgroundPosition = "center";
@@ -359,7 +406,7 @@ function createGameCard(game) {
 
 function bindEvents() {
   document.querySelectorAll(".nav-item").forEach((item) => {
-    item.addEventListener("click", () => setView(item.dataset.view));
+    item.addEventListener("click", () => navigate(item.dataset.view));
   });
 
   const syncBtn = document.getElementById("syncBtn");
@@ -380,6 +427,8 @@ function bindEvents() {
   const librarySearch = document.getElementById("librarySearch");
   const seeAllBtn = document.getElementById("seeAllBtn");
   const heroViewDetails = document.getElementById("heroViewDetails");
+  const navBack = document.getElementById("navBack");
+  const navForward = document.getElementById("navForward");
 
   syncBtn?.addEventListener("click", async () => {
     if (!requireSettings("Sync")) return;
@@ -474,7 +523,7 @@ function bindEvents() {
     if (!selectedKey) return;
     const target = detectedGames.find((game) => buildKey(game.name, game.exePath) === selectedKey);
     if (target) openOverrideEditor(target, selectedKey);
-    setView("overrides");
+    navigate("overrides");
   });
   librarySearch?.addEventListener("input", (event) => {
     const target = event.target;
@@ -493,6 +542,8 @@ function bindEvents() {
     const featured = pickFeaturedGame(libraryGames);
     if (featured) showDetails(featured);
   });
+  navBack?.addEventListener("click", goBack);
+  navForward?.addEventListener("click", goForward);
 
   window.steamSyncer.onStatus(applyStatus);
 }
@@ -510,7 +561,7 @@ async function init() {
   detectedGames = await window.steamSyncer.getDetectedGames();
   renderOverrides();
   await refreshLibrary();
-  setView("dashboard");
+  navigate("dashboard", null, true);
 }
 
 function waitForBridge() {

@@ -117,6 +117,21 @@ body {
   gap: 16px;
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn.icon-only {
+  padding: 6px 8px;
+}
+
 .topbar h1 {
   font-size: 24px;
 }
@@ -342,6 +357,13 @@ body {
   color: var(--muted);
 }
 
+.library-hero__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
 .library-section {
   margin-bottom: 16px;
 }
@@ -370,6 +392,14 @@ body {
   gap: 12px;
   overflow-x: auto;
   padding-bottom: 8px;
+}
+
+.carousel-card .game-cover {
+  height: 140px;
+}
+
+.grid-card .game-cover {
+  height: 160px;
 }
 
 .carousel::-webkit-scrollbar {
@@ -447,7 +477,7 @@ body {
 
 .game-cover {
   position: relative;
-  height: 120px;
+  height: 140px;
   border-radius: 8px;
   background: #131b25;
   overflow: hidden;
@@ -518,8 +548,74 @@ body {
   top: 24px;
 }
 
-#detailPanel {
-  margin-top: 18px;
+.game-page {
+  display: grid;
+  gap: 18px;
+}
+
+.game-hero {
+  height: 240px;
+  border-radius: 16px;
+  background: #121a24;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4);
+}
+
+.game-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.8) 100%);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.game-hero__title {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.game-hero__sub {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.game-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.game-meta-card {
+  background: linear-gradient(180deg, rgba(32, 46, 64, 0.9), rgba(20, 28, 38, 0.9));
+  border: 1px solid #1c2f43;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.game-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.info-card {
+  background: linear-gradient(180deg, rgba(32, 46, 64, 0.9), rgba(20, 28, 38, 0.9));
+  border: 1px solid #1c2f43;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.info-value {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
 }
 
 .detail-hero {

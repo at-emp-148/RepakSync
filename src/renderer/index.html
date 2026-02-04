@@ -50,9 +50,23 @@
 
       <main class="content">
         <header class="topbar">
-          <div>
-            <h1 id="pageTitle">Dashboard</h1>
-            <p id="pageSubtitle">Local games sync status and activity.</p>
+          <div class="topbar-left">
+            <div class="nav-buttons">
+              <button id="navBack" class="btn ghost icon-only" title="Back">
+                <span class="icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4 7 12l8.5 8v-5.5H23v-5H15.5z" /></svg>
+                </span>
+              </button>
+              <button id="navForward" class="btn ghost icon-only" title="Forward">
+                <span class="icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 4 17 12l-8.5 8v-5.5H1v-5h7.5z" /></svg>
+                </span>
+              </button>
+            </div>
+            <div>
+              <h1 id="pageTitle">Dashboard</h1>
+              <p id="pageSubtitle">Local games sync status and activity.</p>
+            </div>
           </div>
           <div class="actions">
             <button id="syncBtn" class="btn primary">
@@ -164,42 +178,66 @@
             </div>
             <div class="library-grid" id="libraryGrid"></div>
           </div>
+        </section>
 
-          <aside class="detail-panel hidden" id="detailPanel">
-            <div class="detail-hero" id="detailHero">
-              <div class="detail-hero__overlay">
-                <div class="detail-title" id="detailName">Game</div>
-                <div class="detail-sub" id="detailSource">Source</div>
+        <section class="view" data-view="game">
+          <div class="game-page">
+            <div class="game-hero" id="detailHero">
+              <div class="game-hero__overlay">
+                <div class="game-hero__title" id="detailName">Game</div>
+                <div class="game-hero__sub" id="detailSource">Source</div>
+                <div class="game-hero__actions">
+                  <button id="editOverrideFromDetail" class="btn small ghost">Edit Launch Override</button>
+                </div>
               </div>
             </div>
-            <div class="detail-meta">
-              <div class="detail-section">
+
+            <div class="game-meta-grid">
+              <div class="game-meta-card">
                 <div class="detail-label">AppID</div>
                 <div class="detail-value" id="detailAppId">-</div>
               </div>
-              <div class="detail-section">
+              <div class="game-meta-card">
                 <div class="detail-label">Executable</div>
                 <div class="detail-value" id="detailExe">-</div>
               </div>
-              <div class="detail-section">
+              <div class="game-meta-card">
                 <div class="detail-label">Start Dir</div>
                 <div class="detail-value" id="detailStartDir">-</div>
               </div>
-              <div class="detail-section">
+              <div class="game-meta-card">
                 <div class="detail-label">Launch Options</div>
                 <div class="detail-value" id="detailArgs">-</div>
               </div>
-              <div class="detail-section">
+              <div class="game-meta-card">
                 <div class="detail-label">Last Played</div>
                 <div class="detail-value" id="detailLastPlayed">-</div>
               </div>
-              <div class="detail-section">
+              <div class="game-meta-card">
                 <div class="detail-label">Artwork</div>
                 <div class="detail-value" id="detailArtwork">-</div>
               </div>
             </div>
-            <button id="editOverrideFromDetail" class="btn small">Edit Launch Override</button>
-          </aside>
+
+            <div class="game-info-grid">
+              <div class="info-card">
+                <div class="card-title">Ratings</div>
+                <div class="info-value" id="detailRatings">Not available for non-Steam games</div>
+              </div>
+              <div class="info-card">
+                <div class="card-title">Reviews</div>
+                <div class="info-value" id="detailReviews">Not available for non-Steam games</div>
+              </div>
+              <div class="info-card">
+                <div class="card-title">Guides</div>
+                <div class="info-value" id="detailGuides">Not available for non-Steam games</div>
+              </div>
+              <div class="info-card">
+                <div class="card-title">Community</div>
+                <div class="info-value" id="detailCommunity">Not available for non-Steam games</div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section class="view" data-view="overrides">
