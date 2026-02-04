@@ -18,6 +18,10 @@ Electron app that detects local games and adds them to Steam as Non‑Steam Game
 4. Start app:
    - `npm start`
 
+## Quick Run (Windows PowerShell)
+From the repo root:
+- `./scripts/run-dev.ps1`
+
 ## Notes
 - Steam must be closed to update `shortcuts.vdf`. The app will close and relaunch it when needed.
 - Add your SteamGridDB API key in the UI under Artwork.
