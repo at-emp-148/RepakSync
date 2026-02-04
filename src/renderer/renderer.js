@@ -21,7 +21,8 @@ const pageSubtitles = {
   dashboard: "Local games sync status and activity.",
   library: "Browse detected games and metadata.",
   overrides: "Configure launchers and alternate executables.",
-  settings: "Sync options, SteamGridDB, and launch controls."
+  settings: "Sync options, SteamGridDB, and launch controls.",
+  game: "Library details and metadata."
 };
 
 function fileUrl(filePath) {
@@ -260,9 +261,10 @@ function renderLibrary() {
   if (libraryCarousel) libraryCarousel.innerHTML = "";
   const totalDetected = document.getElementById("totalDetected");
   if (totalDetected) totalDetected.textContent = libraryGames.length;
+  const filter = libraryFilter.trim().toLowerCase();
   const filtered = libraryGames.filter((game) =>
-    game.name.toLowerCase().includes(libraryFilter) ||
-    game.source.toLowerCase().includes(libraryFilter)
+    game.name.toLowerCase().includes(filter) ||
+    game.source.toLowerCase().includes(filter)
   );
 
   const featured = pickFeaturedGame(filtered);
@@ -293,8 +295,10 @@ function renderLibrary() {
     libraryHero.style.backgroundPosition = "center";
   }
 
+  const carouselGames = [...filtered].sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0));
   if (libraryCarousel) {
-    filtered.forEach((game) => {
+    libraryCarousel.innerHTML = "";
+    carouselGames.slice(0, 12).forEach((game) => {
       const card = createGameCard(game, "carousel");
       libraryCarousel.appendChild(card);
     });
@@ -304,7 +308,8 @@ function renderLibrary() {
     const shouldShow = showAllGrid || libraryFilter.length > 0;
     libraryGridWrap.classList.toggle("hidden", !shouldShow);
   }
-  filtered.forEach((game) => {
+  const gridGames = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+  gridGames.forEach((game) => {
     const card = createGameCard(game, "grid");
     libraryGrid.appendChild(card);
   });
@@ -354,6 +359,10 @@ function openGamePage(game, replace) {
     detailArtwork.textContent = status.join(" · ");
   }
   navigate("game", game, replace);
+  const pageTitle = document.getElementById("pageTitle");
+  const pageSubtitle = document.getElementById("pageSubtitle");
+  if (pageTitle) pageTitle.textContent = game.name;
+  if (pageSubtitle) pageSubtitle.textContent = "Library details and metadata.";
 }
 
 function pickFeaturedGame(games) {
@@ -374,12 +383,15 @@ function createGameCard(game, variant) {
   if (variant) card.classList.add(`${variant}-card`);
   const cover = document.createElement("div");
   cover.className = "game-cover";
-  const coverFile = variant === "carousel" ? (game.heroPath || game.gridPath) : game.gridPath || game.heroPath;
+  const coverFile = variant === "carousel"
+    ? (game.heroPath || game.gridPath || game.iconPath)
+    : (game.gridPath || game.heroPath || game.iconPath);
   if (coverFile) cover.style.backgroundImage = `url(${fileUrl(coverFile)})`;
   cover.style.backgroundSize = "cover";
   cover.style.backgroundPosition = "center";
 
-  if (game.iconPath) {
+  const showIcon = game.iconPath && coverFile !== game.iconPath;
+  if (showIcon) {
     const icon = document.createElement("img");
     icon.className = "game-cover__icon";
     icon.src = fileUrl(game.iconPath);
@@ -399,7 +411,8 @@ function createGameCard(game, variant) {
   sub.className = "game-sub";
   sub.textContent = game.source.toUpperCase();
   info.append(title, sub);
-  card.append(cover, info);
+  cover.appendChild(info);
+  card.append(cover);
   card.addEventListener("click", () => showDetails(game));
   return card;
 }
@@ -424,7 +437,7 @@ function bindEvents() {
   const saveOverride = document.getElementById("saveOverride");
   const clearOverride = document.getElementById("clearOverride");
   const editOverrideFromDetail = document.getElementById("editOverrideFromDetail");
-  const librarySearch = document.getElementById("librarySearch");
+  const topSearch = document.getElementById("topSearch");
   const seeAllBtn = document.getElementById("seeAllBtn");
   const heroViewDetails = document.getElementById("heroViewDetails");
   const navBack = document.getElementById("navBack");
@@ -525,7 +538,7 @@ function bindEvents() {
     if (target) openOverrideEditor(target, selectedKey);
     navigate("overrides");
   });
-  librarySearch?.addEventListener("input", (event) => {
+  topSearch?.addEventListener("input", (event) => {
     const target = event.target;
     if (target && typeof target.value === "string") {
       libraryFilter = target.value.trim().toLowerCase();

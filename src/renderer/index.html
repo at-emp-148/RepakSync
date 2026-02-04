@@ -68,7 +68,17 @@
               <p id="pageSubtitle">Local games sync status and activity.</p>
             </div>
           </div>
-          <div class="actions">
+          <div class="topbar-actions">
+            <div class="top-search">
+              <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.8l-.3-.3a6 6 0 1 0-.7.7l.3.3v.8L20 20.5 21.5 19 15.5 14zM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" /></svg>
+              </span>
+              <input id="topSearch" type="text" placeholder="Search here..." />
+            </div>
+            <div class="profile-chip">
+              <span class="profile-avatar">JG</span>
+              <span class="profile-name">Jakob Gouse</span>
+            </div>
             <button id="syncBtn" class="btn primary">
               <span class="icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-2.5-3H18a8 8 0 1 1-8 8H8a10 10 0 1 0 10-10h-2.5L18 0H6l2 3H6v5z" /></svg>
@@ -144,12 +154,9 @@
               <h2>Library</h2>
               <p>Browse detected games and metadata.</p>
             </div>
-            <div class="library-tools">
-              <div class="search">
-                <input id="librarySearch" type="text" placeholder="Search local library..." />
-              </div>
-              <div class="pill">Local</div>
-            </div>
+          <div class="library-tools">
+            <div class="pill">Local</div>
+          </div>
           </div>
 
           <div class="library-hero" id="libraryHero">
