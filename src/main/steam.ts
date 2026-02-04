@@ -190,9 +190,9 @@ export function addGamesToShortcuts(
   const existing = new Set<string>();
   for (const key of Object.keys(root.shortcuts || {})) {
     const entry = root.shortcuts[key];
-    const appname = String(entry.appname ?? "");
-    const exe = String(entry.exe ?? "");
-    existing.add(`${appname}::${exe}`.toLowerCase());
+    const appname = String(entry.appname ?? "").trim().toLowerCase();
+    const exe = normalizeExe(String(entry.exe ?? ""));
+    existing.add(`${appname}::${exe}`);
   }
 
   const addedIds: number[] = [];
@@ -202,7 +202,7 @@ export function addGamesToShortcuts(
   if (!root.shortcuts) root.shortcuts = {};
 
   for (const game of games) {
-    const key = `${game.name}::${game.exePath}`.toLowerCase();
+    const key = `${game.name.trim().toLowerCase()}::${normalizeExe(game.exePath)}`;
     if (existing.has(key)) continue;
     const appid = computeAppId(game.name, game.exePath);
     root.shortcuts[String(nextIndex)] = {
@@ -229,4 +229,8 @@ export function addGamesToShortcuts(
   }
 
   return { added, addedIds, addedGames };
+}
+
+function normalizeExe(exe: string): string {
+  return exe.replace(/^\"|\"$/g, "").trim().toLowerCase();
 }
