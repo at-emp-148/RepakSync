@@ -1,6 +1,6 @@
 import path from "node:path";
 import { GameCandidate, SyncStatus } from "../shared/types.js";
-import { fetchArtwork } from "./artwork.js";
+import { fetchArtworkSet } from "./artwork.js";
 import { getKnownStoreFolders, scanFolders } from "./scanner.js";
 import {
   addGamesToShortcuts,
@@ -92,12 +92,12 @@ export async function runSync(
       const appId = addedIds[i];
       const game = addedGames[i];
       if (!game) continue;
-      const ok = await fetchArtwork(steamGridDbApiKey, game.name, gridPath, appId);
-      if (ok) remaining--;
+      const art = await fetchArtworkSet(steamGridDbApiKey, game.name, gridPath, appId);
+      if (art.downloaded > 0) remaining--;
       status.pendingArtwork = remaining;
       status.message = `Artwork remaining: ${remaining}`;
       onStatus?.(status);
-      log("info", "Artwork fetch", { game: game.name, ok });
+      log("info", "Artwork fetch", { game: game.name, ...art });
     }
   }
 
