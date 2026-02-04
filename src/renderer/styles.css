@@ -233,6 +233,16 @@ h1 {
   padding: 10px 12px;
 }
 
+.field-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.field-inline input {
+  flex: 1;
+}
+
 .artwork {
   display: flex;
   gap: 16px;

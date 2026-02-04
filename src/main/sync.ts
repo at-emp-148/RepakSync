@@ -4,8 +4,11 @@ import { fetchArtworkSet } from "./artwork.js";
 import { getKnownStoreFolders, scanFolders } from "./scanner.js";
 import {
   addGamesToShortcuts,
+  buildShortcutKey,
   closeSteam,
+  computeAppId,
   findPrimarySteamUserId,
+  getShortcutAppId,
   getSteamPath,
   getUserdataPath,
   isSteamRunning,
@@ -76,9 +79,16 @@ export async function runSync(
   if (dedupeResult.removed > 0) {
     log("info", "Removed duplicate shortcuts", { removed: dedupeResult.removed });
   }
-  const { added, addedIds, addedGames } = addGamesToShortcuts(root, games);
-  writeShortcuts(shortcutsPath, root);
-  log("info", "Shortcuts updated", { added });
+  const { added, addedIds } = addGamesToShortcuts(root, games);
+  const gridPath = path.join(userdataPath, userId, "config", "grid");
+
+  const shortcutIndex = new Map<string, Record<string, unknown>>();
+  for (const key of Object.keys(root.shortcuts || {})) {
+    const entry = root.shortcuts[key];
+    const appname = String(entry.appname ?? "");
+    const exe = String(entry.exe ?? "");
+    shortcutIndex.set(buildShortcutKey(appname, exe), entry);
+  }
 
   status.message = `Added ${added} new games. Fetching artwork...`;
   status.added = added;
@@ -86,20 +96,32 @@ export async function runSync(
   onStatus?.(status);
 
   if (steamGridDbApiKey) {
-    const gridPath = path.join(userdataPath, userId, "config", "grid");
-    let remaining = addedIds.length;
-    for (let i = 0; i < addedIds.length; i++) {
-      const appId = addedIds[i];
-      const game = addedGames[i];
-      if (!game) continue;
-      const art = await fetchArtworkSet(steamGridDbApiKey, game.name, gridPath, appId);
+    const targets = games.map((game) => {
+      const key = buildShortcutKey(game.name, game.exePath);
+      const entry = shortcutIndex.get(key);
+      const appId = entry
+        ? getShortcutAppId(entry) ?? computeAppId(game.name, game.exePath)
+        : computeAppId(game.name, game.exePath);
+      if (entry && entry.appid == null) entry.appid = appId;
+      return { game, entry, appId };
+    });
+
+    let remaining = targets.length;
+    for (const target of targets) {
+      const art = await fetchArtworkSet(steamGridDbApiKey, target.game.name, gridPath, target.appId);
       if (art.downloaded > 0) remaining--;
+      if (target.entry && art.files.icon) {
+        target.entry.icon = art.files.icon;
+      }
       status.pendingArtwork = remaining;
       status.message = `Artwork remaining: ${remaining}`;
       onStatus?.(status);
-      log("info", "Artwork fetch", { game: game.name, ...art });
+      log("info", "Artwork fetch", { game: target.game.name, ...art });
     }
   }
+
+  writeShortcuts(shortcutsPath, root);
+  log("info", "Shortcuts updated", { added });
 
   const doneStatus: SyncStatus = {
     state: "synced",

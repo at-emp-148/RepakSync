@@ -11,6 +11,7 @@ const knownStores = document.getElementById("knownStores");
 const apiKey = document.getElementById("apiKey");
 const saveSettings = document.getElementById("saveSettings");
 const openLogs = document.getElementById("openLogs");
+const toggleApiKey = document.getElementById("toggleApiKey");
 
 let settings = null;
 
@@ -77,6 +78,11 @@ saveSettings.addEventListener("click", async () => {
 });
 openLogs.addEventListener("click", async () => {
   await window.steamSyncer.openLogs();
+});
+toggleApiKey.addEventListener("click", () => {
+  const isHidden = apiKey.type === "password";
+  apiKey.type = isHidden ? "text" : "password";
+  toggleApiKey.textContent = isHidden ? "Hide" : "Show";
 });
 
 window.steamSyncer.onStatus(applyStatus);

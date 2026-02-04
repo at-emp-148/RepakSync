@@ -14,6 +14,7 @@ type SteamGridResponse<T> = {
 type ArtworkResult = {
   downloaded: number;
   attempted: number;
+  files: Partial<Record<"grid" | "gridWide" | "hero" | "logo" | "icon", string>>;
 };
 
 export async function fetchArtworkSet(
@@ -22,7 +23,7 @@ export async function fetchArtworkSet(
   gridPath: string,
   appId: number
 ): Promise<ArtworkResult> {
-  const result: ArtworkResult = { downloaded: 0, attempted: 0 };
+  const result: ArtworkResult = { downloaded: 0, attempted: 0, files: {} };
   try {
     const gameId = await findGameId(apiKey, gameName);
     if (!gameId) {
@@ -31,12 +32,12 @@ export async function fetchArtworkSet(
     }
 
     const assets = [
-      { type: "grid-portrait", url: await fetchGrid(apiKey, gameId, "600x900"), file: `${appId}_p` },
-      { type: "grid-wide", url: await fetchGrid(apiKey, gameId, "920x430,460x215"), file: `${appId}` },
-      { type: "hero", url: await fetchHero(apiKey, gameId), file: `${appId}_hero` },
-      { type: "logo", url: await fetchLogo(apiKey, gameId), file: `${appId}_logo` },
-      { type: "icon", url: await fetchIcon(apiKey, gameId), file: `${appId}_icon` }
-    ];
+      { key: "grid", type: "grid-portrait", url: await fetchGrid(apiKey, gameId, "600x900"), file: `${appId}_p` },
+      { key: "gridWide", type: "grid-wide", url: await fetchGrid(apiKey, gameId, "920x430,460x215"), file: `${appId}` },
+      { key: "hero", type: "hero", url: await fetchHero(apiKey, gameId), file: `${appId}_hero` },
+      { key: "logo", type: "logo", url: await fetchLogo(apiKey, gameId), file: `${appId}_logo` },
+      { key: "icon", type: "icon", url: await fetchIcon(apiKey, gameId), file: `${appId}_icon` }
+    ] as const;
 
     for (const asset of assets) {
       if (!asset.url) continue;
@@ -46,6 +47,7 @@ export async function fetchArtworkSet(
       try {
         await downloadToFile(asset.url, target);
         result.downloaded++;
+        result.files[asset.key] = target;
         log("info", "Artwork downloaded", { gameName, type: asset.type, target });
       } catch (error) {
         log("warn", "Artwork download failed", { gameName, type: asset.type, error: String(error) });

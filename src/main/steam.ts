@@ -235,6 +235,20 @@ function normalizeExe(exe: string): string {
   return exe.replace(/^\"|\"$/g, "").trim().toLowerCase();
 }
 
+export function buildShortcutKey(appname: string, exe: string): string {
+  return `${appname.trim().toLowerCase()}::${normalizeExe(exe)}`;
+}
+
+export function getShortcutAppId(entry: Record<string, unknown>): number | null {
+  const appid = entry.appid ?? entry.appID ?? entry.AppID;
+  if (typeof appid === "number") return appid;
+  if (typeof appid === "string") {
+    const parsed = Number(appid);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 export function dedupeShortcuts(root: ShortcutsRoot): { removed: number } {
   if (!root.shortcuts) return { removed: 0 };
   const seen = new Set<string>();
