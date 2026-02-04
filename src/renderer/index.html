@@ -22,16 +22,28 @@
         </div>
         <nav class="nav">
           <button class="nav-item active" data-view="dashboard">
-            <span class="nav-icon">🏠</span> Dashboard
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5L12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5z" /></svg>
+            </span>
+            Dashboard
           </button>
           <button class="nav-item" data-view="library">
-            <span class="nav-icon">🎮</span> Library
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V7a2 2 0 0 1 2-2zm0 3v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8H7zm2 7h6v-2H9v2z" /></svg>
+            </span>
+            Library
           </button>
           <button class="nav-item" data-view="overrides">
-            <span class="nav-icon">🧩</span> Overrides
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a4 4 0 0 1 4 4v1h1a4 4 0 0 1 4 4v2a4 4 0 0 1-4 4h-1v1a4 4 0 0 1-8 0v-1H7a4 4 0 0 1-4-4v-2a4 4 0 0 1 4-4h1V7a4 4 0 0 1 4-4zm-2 6h4V7a2 2 0 0 0-4 0v2zm4 10H10v-2H8a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2v2z" /></svg>
+            </span>
+            Overrides
           </button>
           <button class="nav-item" data-view="settings">
-            <span class="nav-icon">⚙</span> Settings
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zm8.2 3.2-.9-.3a7.5 7.5 0 0 0-.8-1.8l.5-.8a1 1 0 0 0-.1-1.2l-1.4-1.4a1 1 0 0 0-1.2-.1l-.8.5a7.5 7.5 0 0 0-1.8-.8l-.3-.9a1 1 0 0 0-1-.7h-2a1 1 0 0 0-1 .7l-.3.9a7.5 7.5 0 0 0-1.8.8l-.8-.5a1 1 0 0 0-1.2.1L4.1 6.6a1 1 0 0 0-.1 1.2l.5.8a7.5 7.5 0 0 0-.8 1.8l-.9.3a1 1 0 0 0-.7 1v2a1 1 0 0 0 .7 1l.9.3a7.5 7.5 0 0 0 .8 1.8l-.5.8a1 1 0 0 0 .1 1.2l1.4 1.4a1 1 0 0 0 1.2.1l.8-.5a7.5 7.5 0 0 0 1.8.8l.3.9a1 1 0 0 0 1 .7h2a1 1 0 0 0 1-.7l.3-.9a7.5 7.5 0 0 0 1.8-.8l.8.5a1 1 0 0 0 1.2-.1l1.4-1.4a1 1 0 0 0 .1-1.2l-.5-.8a7.5 7.5 0 0 0 .8-1.8l.9-.3a1 1 0 0 0 .7-1v-2a1 1 0 0 0-.7-1z" /></svg>
+            </span>
+            Settings
           </button>
         </nav>
       </aside>
@@ -43,12 +55,23 @@
             <p id="pageSubtitle">Local games sync status and activity.</p>
           </div>
           <div class="actions">
-            <button id="syncBtn" class="btn primary">Run Sync</button>
+            <button id="syncBtn" class="btn primary">
+              <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-2.5-3H18a8 8 0 1 1-8 8H8a10 10 0 1 0 10-10h-2.5L18 0H6l2 3H6v5z" /></svg>
+              </span>
+              Run Sync
+            </button>
             <button id="launchBtn" class="btn ghost">
-              <span class="icon">▶</span> Launch Steam
+              <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm3 3v8l6-4-6-4z" /></svg>
+              </span>
+              Launch Steam
             </button>
             <button id="launchBigPictureBtn" class="btn ghost">
-              <span class="icon">⬛</span> Big Picture
+              <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3V5zm2 2v10h14V7H5zm4 1h6l-2 3 2 3H9l2-3-2-3z" /></svg>
+              </span>
+              Big Picture
             </button>
           </div>
         </header>

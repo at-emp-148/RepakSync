@@ -17,7 +17,7 @@
 
 body {
   font-family: "Segoe UI", "Inter", "Roboto", sans-serif;
-  background: radial-gradient(circle at top left, #1f2b3a, #0f141b 55%);
+  background: radial-gradient(circle at top left, #1c2734, #0d1218 60%);
   color: var(--text);
   min-height: 100vh;
 }
@@ -35,6 +35,7 @@ body {
   flex-direction: column;
   gap: 24px;
   border-right: 1px solid #0f141b;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
 }
 
 .brand {
@@ -74,7 +75,7 @@ body {
   padding: 10px 12px;
   border-radius: 3px;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .nav-icon {
@@ -93,6 +94,7 @@ body {
   background: #1a3247;
   border-color: var(--accent);
   color: var(--text);
+  transform: translateX(2px);
 }
 
 .content {
@@ -132,12 +134,15 @@ body {
   border-radius: 3px;
   cursor: pointer;
   font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .btn.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: #0f141b;
+  box-shadow: 0 6px 20px rgba(26, 159, 255, 0.25);
 }
 
 .btn.ghost {
@@ -147,6 +152,19 @@ body {
 
 .btn:hover {
   border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.icon {
+  margin-right: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
 }
 
 .view {
@@ -172,6 +190,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .card-title {
@@ -237,6 +257,13 @@ body {
   flex-direction: column;
   gap: 8px;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 .game-card img {
@@ -275,6 +302,8 @@ body {
   padding: 16px;
   display: grid;
   gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 12px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
 }
 
 .detail-panel.hidden {
@@ -352,6 +381,8 @@ body {
   display: grid;
   gap: 12px;
   margin-top: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .hidden {
@@ -372,6 +403,7 @@ body {
   color: var(--text);
   padding: 8px 10px;
   border-radius: 3px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .field-inline {

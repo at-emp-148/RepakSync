@@ -25,6 +25,7 @@ let tray: Tray | null = null;
 let lastStatus: SyncStatus = { state: "idle", message: "Ready." };
 let syncing = false;
 let steamLaunchHandledAt: number | null = null;
+let suppressSteamWatchUntil = 0;
 
 const ICON_PATH = path.join(app.getAppPath(), "assets", "tray.png");
 
@@ -125,6 +126,7 @@ function setupIpc(): void {
   ipcMain.handle("launch-steam", async () => {
     if (syncing) return { ok: false, message: "Sync in progress" };
     log("info", "Launch Steam requested");
+    suppressSteamWatchUntil = Date.now() + 120000;
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteam(steamPath);
     return { ok: true };
@@ -132,6 +134,7 @@ function setupIpc(): void {
   ipcMain.handle("launch-steam-big-picture", async () => {
     if (syncing) return { ok: false, message: "Sync in progress" };
     log("info", "Launch Steam Big Picture requested");
+    suppressSteamWatchUntil = Date.now() + 120000;
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteamBigPicture(steamPath);
     return { ok: true };
@@ -153,6 +156,7 @@ app.on("ready", () => {
 function startSteamWatch(): void {
   setInterval(async () => {
     if (syncing) return;
+    if (Date.now() < suppressSteamWatchUntil) return;
     const running = await isSteamRunning();
     if (!running) return;
     const now = Date.now();
