@@ -76,6 +76,7 @@ function setupIpc(): void {
     return settings;
   });
   ipcMain.handle("choose-folder", async () => {
+    log("info", "Choose folder requested");
     const res = await dialog.showOpenDialog({ properties: ["openDirectory"] });
     if (res.canceled || res.filePaths.length === 0) return null;
     return res.filePaths[0];
@@ -96,6 +97,7 @@ function setupIpc(): void {
     return scanFolders(folders);
   });
   ipcMain.handle("sync", async () => {
+    log("info", "Sync requested via UI");
     await triggerSync();
     return lastStatus;
   });
