@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import sharp from "sharp";
 import { log } from "./logger.js";
 
 const API_BASE = "https://www.steamgriddb.com/api/v2";
@@ -129,10 +130,16 @@ async function downloadToFile(url: string, target: string): Promise<void> {
   if (!res.ok) throw new Error(`download failed (${res.status})`);
   const buffer = Buffer.from(await res.arrayBuffer());
   fs.mkdirSync(path.dirname(target), { recursive: true });
+  if (url.toLowerCase().endsWith(".webp")) {
+    const pngTarget = target.replace(/\.[^.]+$/, ".png");
+    const converted = await sharp(buffer).png().toBuffer();
+    fs.writeFileSync(pngTarget, converted);
+    return;
+  }
   fs.writeFileSync(target, buffer);
 }
 
-const ART_EXTS = [".png", ".jpg", ".jpeg", ".webp"];
+const ART_EXTS = [".png", ".jpg", ".jpeg"];
 
 function getMissingArtwork(
   gridPath: string,

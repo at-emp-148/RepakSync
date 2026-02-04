@@ -14,6 +14,7 @@
   "dependencies": {
     "electron": "^29.1.0",
     "ps-list": "^8.1.1",
+    "sharp": "^0.33.5",
     "steam-binary-vdf": "^0.1.0"
   },
   "devDependencies": {
