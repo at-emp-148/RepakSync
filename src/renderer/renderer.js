@@ -215,7 +215,7 @@ function navigate(view, payload = null, replace = false) {
     historyStack.push({ view, payload });
     historyIndex = historyStack.length - 1;
   }
-  // setView(view);
+  setView(view);
   updateNavButtons();
 }
 
