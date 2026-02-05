@@ -9,12 +9,14 @@ import {
   closeSteam,
   computeAppId,
   computeShortcutAppId,
+  detectRunningSteamMode,
   findPrimarySteamUserId,
   getShortcutAppId,
   getSteamPath,
   getUserdataPath,
   isSteamRunning,
   readShortcuts,
+  SteamLaunchMode,
   writeShortcuts
 } from "./steam.js";
 import { log } from "./logger.js";
@@ -47,6 +49,7 @@ export async function runSync(
   log("info", "Steam path resolved", { steamPath });
 
   const running = await isSteamRunning();
+  const launchMode: SteamLaunchMode = running ? await detectRunningSteamMode() : "normal";
   if (running) {
     status.message = "Closing Steam for sync...";
     onStatus?.(status);
@@ -165,6 +168,17 @@ export async function runSync(
     added
   };
   onStatus?.(doneStatus);
+
+  if (running) {
+    const relaunching: SyncStatus = { ...doneStatus, message: "Sync complete. Relaunching Steam..." };
+    onStatus?.(relaunching);
+    const { launchSteam, launchSteamBigPicture } = await import("./steam.js");
+    if (launchMode === "bigpicture") await launchSteamBigPicture(steamPath);
+    else await launchSteam(steamPath);
+    log("info", "Steam relaunched", { launchMode });
+    const relaunched: SyncStatus = { ...doneStatus, message: "Sync complete. Steam relaunched." };
+    onStatus?.(relaunched);
+  }
 
   return { status: doneStatus, addedAppIds: addedIds };
 }

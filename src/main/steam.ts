@@ -9,6 +9,8 @@ import { GameCandidate } from "../shared/types.js";
 
 const execFileAsync = promisify(execFile);
 
+export type SteamLaunchMode = "normal" | "bigpicture";
+
 export async function getSteamPath(): Promise<string | null> {
   if (process.platform !== "win32") return null;
   try {
@@ -76,6 +78,35 @@ function normalizeSteamPath(value: string | null): string | null {
 export async function isSteamRunning(): Promise<boolean> {
   const processes = await psList();
   return processes.some((p) => p.name.toLowerCase() === "steam.exe");
+}
+
+export async function detectRunningSteamMode(): Promise<SteamLaunchMode> {
+  if (process.platform !== "win32") return "normal";
+  try {
+    const processes = await psList();
+    const steam = processes.find((p) => p.name.toLowerCase() === "steam.exe") as
+      | (typeof processes)[number] & { cmd?: string; cmdline?: string; command?: string }
+      | undefined;
+    const cmd =
+      (steam?.cmd as unknown) ??
+      (steam?.cmdline as unknown) ??
+      (steam?.command as unknown) ??
+      "";
+    if (typeof cmd === "string" && cmd.toLowerCase().includes("bigpicture")) return "bigpicture";
+  } catch {
+    // fall through
+  }
+  try {
+    const { stdout } = await execFileAsync("powershell", [
+      "-NoProfile",
+      "-Command",
+      "try { (Get-CimInstance Win32_Process -Filter \"Name='steam.exe'\").CommandLine } catch { '' }"
+    ]);
+    if (stdout.toLowerCase().includes("bigpicture")) return "bigpicture";
+  } catch {
+    // fall through
+  }
+  return "normal";
 }
 
 export async function closeSteam(): Promise<void> {
