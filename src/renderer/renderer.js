@@ -27,7 +27,7 @@ const pageSubtitles = {
 
 function fileUrl(filePath) {
   if (!filePath) return null;
-  return `file:///${filePath.replace(/\\/g, "/")}`;
+  return encodeURI(`file:///${filePath.replace(/\\/g, "/")}`);
 }
 
 function requireSettings(actionLabel) {
@@ -215,7 +215,7 @@ function navigate(view, payload = null, replace = false) {
     historyStack.push({ view, payload });
     historyIndex = historyStack.length - 1;
   }
-  setView(view);
+  // setView(view);
   updateNavButtons();
 }
 
@@ -290,7 +290,7 @@ function renderLibrary() {
   }
   if (libraryHero) {
     const heroImage = featured?.heroPath || featured?.gridPath;
-    libraryHero.style.backgroundImage = heroImage ? `url(${fileUrl(heroImage)})` : "none";
+    libraryHero.style.backgroundImage = heroImage ? `url("${fileUrl(heroImage)}")` : "none";
     libraryHero.style.backgroundSize = "cover";
     libraryHero.style.backgroundPosition = "center";
   }
@@ -335,7 +335,7 @@ function openGamePage(game, replace) {
   renderLibrary();
   if (detailHero) {
     const hero = game.heroPath || game.gridPath;
-    detailHero.style.backgroundImage = hero ? `url(${fileUrl(hero)})` : "none";
+    detailHero.style.backgroundImage = hero ? `url("${fileUrl(hero)}")` : "none";
     detailHero.style.backgroundSize = "cover";
     detailHero.style.backgroundPosition = "center";
   }
@@ -386,7 +386,7 @@ function createGameCard(game, variant) {
   const coverFile = variant === "carousel"
     ? (game.heroPath || game.gridPath || game.iconPath)
     : (game.gridPath || game.heroPath || game.iconPath);
-  if (coverFile) cover.style.backgroundImage = `url(${fileUrl(coverFile)})`;
+  if (coverFile) cover.style.backgroundImage = `url("${fileUrl(coverFile)}")`;
   cover.style.backgroundSize = "cover";
   cover.style.backgroundPosition = "center";
 
