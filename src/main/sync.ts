@@ -166,12 +166,6 @@ export async function runSync(
   };
   onStatus?.(doneStatus);
 
-  if (running) {
-    const { launchSteam } = await import("./steam.js");
-    await launchSteam(steamPath);
-    log("info", "Steam relaunched");
-  }
-
   return { status: doneStatus, addedAppIds: addedIds };
 }
 

@@ -24,8 +24,7 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let lastStatus: SyncStatus = { state: "idle", message: "Ready." };
 let syncing = false;
-let steamLaunchHandledAt: number | null = null;
-let suppressSteamWatchUntil = 0;
+let syncRequired = false;
 
 const ICON_PATH = path.join(app.getAppPath(), "assets", "tray.png");
 
@@ -58,7 +57,7 @@ function createTray(): void {
   tray = new Tray(nativeImage.createFromPath(ICON_PATH));
   const menu = Menu.buildFromTemplate([
     { label: "Open Steam Syncer", click: () => mainWindow?.show() },
-    { label: "Run Sync", click: () => triggerSync() },
+    { label: "Run Sync", click: () => triggerSync({ origin: "manual" }) },
     { type: "separator" },
     { label: "Quit", click: () => app.quit() }
   ]);
@@ -72,20 +71,62 @@ function updateStatus(status: SyncStatus): void {
   mainWindow?.webContents.send("status", status);
 }
 
-async function triggerSync(): Promise<void> {
+function markSyncRequired(message: string): void {
+  syncRequired = true;
+  updateStatus({ ...lastStatus, state: "idle", message });
+}
+
+function clearSyncRequired(): void {
+  syncRequired = false;
+}
+
+async function triggerSync(opts?: { origin?: "auto" | "manual" }): Promise<void> {
   if (syncing) return;
   syncing = true;
   log("info", "Triggering sync");
+
+  const steamRunning = await isSteamRunning();
+  if (steamRunning && opts?.origin !== "manual") {
+    markSyncRequired("Steam is running. Sync required (run manually when you're done).");
+    syncing = false;
+    return;
+  }
+  if (steamRunning && opts?.origin === "manual") {
+    const res = await dialog.showMessageBox({
+      type: "warning",
+      buttons: ["Cancel", "Run Sync (will close Steam)"],
+      defaultId: 0,
+      cancelId: 0,
+      title: "Steam is running",
+      message: "Steam is currently running.",
+      detail: "Sync requires closing Steam to update shortcuts and artwork. Continue?"
+    });
+    if (res.response !== 1) {
+      syncing = false;
+      return;
+    }
+  }
+
   const settings = loadSettings();
   const result = await runSync(settings, updateStatus);
   updateStatus(result.status);
+  if (result.status.state === "synced") clearSyncRequired();
   syncing = false;
 }
 
 function setupIpc(): void {
   ipcMain.handle("get-settings", () => loadSettings());
   ipcMain.handle("save-settings", (_, settings: Settings) => {
+    const existing = loadSettings();
     saveSettings(settings);
+    const relevantChanged =
+      JSON.stringify(existing.scanFolders ?? []) !== JSON.stringify(settings.scanFolders ?? []) ||
+      Boolean(existing.includeKnownStores) !== Boolean(settings.includeKnownStores) ||
+      String(existing.steamGridDbApiKey ?? "") !== String(settings.steamGridDbApiKey ?? "") ||
+      JSON.stringify(existing.launchOverrides ?? {}) !== JSON.stringify(settings.launchOverrides ?? {});
+    if (relevantChanged) {
+      markSyncRequired("Settings changed. Sync required.");
+    }
     return settings;
   });
   ipcMain.handle("choose-folder", async () => {
@@ -115,7 +156,7 @@ function setupIpc(): void {
   });
   ipcMain.handle("sync", async () => {
     log("info", "Sync requested via UI");
-    await triggerSync();
+    await triggerSync({ origin: "manual" });
     return lastStatus;
   });
   ipcMain.handle("open-logs", async () => {
@@ -126,7 +167,6 @@ function setupIpc(): void {
   ipcMain.handle("launch-steam", async () => {
     if (syncing) return { ok: false, message: "Sync in progress" };
     log("info", "Launch Steam requested");
-    suppressSteamWatchUntil = Date.now() + 120000;
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteam(steamPath);
     return { ok: true };
@@ -134,7 +174,6 @@ function setupIpc(): void {
   ipcMain.handle("launch-steam-big-picture", async () => {
     if (syncing) return { ok: false, message: "Sync in progress" };
     log("info", "Launch Steam Big Picture requested");
-    suppressSteamWatchUntil = Date.now() + 120000;
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteamBigPicture(steamPath);
     return { ok: true };
@@ -149,22 +188,15 @@ app.on("ready", () => {
   mainWindow = createWindow();
   createTray();
   setupIpc();
-  triggerSync();
-  startSteamWatch();
-});
-
-function startSteamWatch(): void {
-  setInterval(async () => {
-    if (syncing) return;
-    if (Date.now() < suppressSteamWatchUntil) return;
+  void (async () => {
     const running = await isSteamRunning();
-    if (!running) return;
-    const now = Date.now();
-    if (steamLaunchHandledAt && now - steamLaunchHandledAt < 5 * 60 * 1000) return;
-    steamLaunchHandledAt = now;
-    await triggerSync();
-  }, 15000);
-}
+    if (running) {
+      markSyncRequired("Steam is running. Sync required (run manually when you're done).");
+      return;
+    }
+    await triggerSync({ origin: "auto" });
+  })();
+});
 
 app.on("window-all-closed", (e: Electron.Event) => {
   e.preventDefault();
