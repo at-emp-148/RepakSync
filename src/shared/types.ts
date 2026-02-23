@@ -45,3 +45,14 @@ export type LibraryGame = {
   gridPath?: string;
   heroPath?: string;
 };
+
+export type Achievement = {
+  id: string;
+  gameAppId: number;
+  name: string;
+  description: string;
+  iconText?: string;
+  unlockedAt?: string;
+  progress?: number;
+  maxProgress?: number;
+};

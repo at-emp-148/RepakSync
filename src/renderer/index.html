@@ -45,6 +45,12 @@
             </span>
             Settings
           </button>
+          <button class="nav-item" data-view="achievements">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17.3l-6.2 4 2.4-7.4L2 9.4h7.6z"/></svg>
+            </span>
+            Achievements
+          </button>
         </nav>
       </aside>
 
@@ -240,6 +246,20 @@
                 <div class="info-value" id="detailCommunity">Not available for non-Steam games</div>
               </div>
             </div>
+
+            <div class="game-achievements-section">
+              <div class="section-header">
+                <h3>Achievements</h3>
+                <button id="addGameAchievementBtn" class="btn small ghost">+ Add Achievement</button>
+              </div>
+              <div id="gameAchievementsProgress" class="game-ach-progress hidden">
+                <div class="ach-progress-bar">
+                  <div class="ach-progress-fill" id="gameAchProgressFill" style="width: 0%"></div>
+                </div>
+                <span class="ach-progress-label" id="gameAchProgressLabel">0 / 0 unlocked</span>
+              </div>
+              <div id="gameAchievementsList" class="game-achievements-list"></div>
+            </div>
           </div>
         </section>
 
@@ -278,6 +298,82 @@
             <div class="override-actions">
               <button id="saveOverride" class="btn small">Save Override</button>
               <button id="clearOverride" class="btn small ghost">Clear Override</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="achievements">
+          <div class="achievements-header">
+            <div>
+              <h2>Achievements</h2>
+              <p>Track and manage offline game achievements.</p>
+            </div>
+            <div class="achievements-header-actions">
+              <select id="achievementGameFilter" class="ach-select">
+                <option value="">All Games</option>
+              </select>
+              <button id="addAchievementBtn" class="btn small primary">
+                <span class="icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+                Add Achievement
+              </button>
+            </div>
+          </div>
+
+          <div class="achievements-stats">
+            <div class="ach-stat-card">
+              <div class="ach-stat-label">Total</div>
+              <div class="ach-stat-value" id="achTotal">0</div>
+            </div>
+            <div class="ach-stat-card">
+              <div class="ach-stat-label">Unlocked</div>
+              <div class="ach-stat-value ach-stat-gold" id="achUnlocked">0</div>
+            </div>
+            <div class="ach-stat-card">
+              <div class="ach-stat-label">Locked</div>
+              <div class="ach-stat-value" id="achLocked">0</div>
+            </div>
+            <div class="ach-stat-card">
+              <div class="ach-stat-label">Completion</div>
+              <div class="ach-stat-value ach-stat-gold" id="achCompletion">0%</div>
+            </div>
+          </div>
+
+          <div id="achievementsList" class="achievements-list"></div>
+
+          <div id="achModal" class="ach-modal hidden">
+            <div class="ach-modal-box">
+              <div class="ach-modal-header">
+                <h3 id="achModalTitle">Add Achievement</h3>
+                <button id="achModalClose" class="btn ghost icon-only" type="button">✕</button>
+              </div>
+              <div class="ach-modal-body">
+                <label class="field">
+                  <span>Game</span>
+                  <select id="achGameSelect" class="ach-select-field"></select>
+                </label>
+                <label class="field">
+                  <span>Icon (emoji)</span>
+                  <input id="achIcon" type="text" placeholder="🏆" maxlength="2" />
+                </label>
+                <label class="field">
+                  <span>Name</span>
+                  <input id="achName" type="text" placeholder="Achievement name" />
+                </label>
+                <label class="field">
+                  <span>Description</span>
+                  <input id="achDesc" type="text" placeholder="How to unlock this achievement" />
+                </label>
+                <label class="field">
+                  <span>Max Progress (optional)</span>
+                  <input id="achMaxProgress" type="number" placeholder="e.g. 100" min="1" />
+                </label>
+              </div>
+              <div class="ach-modal-footer">
+                <button id="achModalSave" class="btn small primary">Save</button>
+                <button id="achModalCancel" class="btn small ghost">Cancel</button>
+              </div>
             </div>
           </div>
         </section>
