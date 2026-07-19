@@ -16,7 +16,8 @@ import {
   launchSteamBigPicture,
   readShortcuts
 } from "./steam.js";
-import { LibraryGame, Settings, SyncStatus } from "../shared/types.js";
+import { Achievement, LibraryGame, Settings, SyncStatus } from "../shared/types.js";
+import { loadAchievements, saveAchievements } from "./achievements.js";
 import { getLogPath, log } from "./logger.js";
 import { getKnownStoreFolders, scanFolders } from "./scanner.js";
 
@@ -177,6 +178,42 @@ function setupIpc(): void {
     const steamPath = await getSteamPath();
     if (steamPath) await launchSteamBigPicture(steamPath);
     return { ok: true };
+  });
+  ipcMain.handle("get-achievements", () => loadAchievements());
+  ipcMain.handle("add-achievement", (_, achievement: Omit<Achievement, "id">) => {
+    const achievements = loadAchievements();
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    const newAchievement: Achievement = { ...achievement, id };
+    achievements.push(newAchievement);
+    saveAchievements(achievements);
+    return newAchievement;
+  });
+  ipcMain.handle("update-achievement", (_, achievement: Achievement) => {
+    const achievements = loadAchievements();
+    const idx = achievements.findIndex((a) => a.id === achievement.id);
+    if (idx >= 0) achievements[idx] = achievement;
+    else achievements.push(achievement);
+    saveAchievements(achievements);
+    return achievement;
+  });
+  ipcMain.handle("delete-achievement", (_, id: string) => {
+    const achievements = loadAchievements().filter((a) => a.id !== id);
+    saveAchievements(achievements);
+    return true;
+  });
+  ipcMain.handle("unlock-achievement", (_, id: string) => {
+    const achievements = loadAchievements();
+    const idx = achievements.findIndex((a) => a.id === id);
+    if (idx >= 0) achievements[idx].unlockedAt = new Date().toISOString();
+    saveAchievements(achievements);
+    return achievements[idx] ?? null;
+  });
+  ipcMain.handle("lock-achievement", (_, id: string) => {
+    const achievements = loadAchievements();
+    const idx = achievements.findIndex((a) => a.id === id);
+    if (idx >= 0) achievements[idx].unlockedAt = undefined;
+    saveAchievements(achievements);
+    return achievements[idx] ?? null;
   });
 }
 
